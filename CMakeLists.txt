@@ -6,14 +6,17 @@
 cmake_minimum_required(VERSION 3.22)
 
 # Sets a few variables, like PROJECT_NAME
-project(WolfSoundAudioPluginTemplate)
+project(NoiseG VERSION 0.0.1 LANGUAGES CXX)
+
+# Set a default CMAKE_BUILD_TYPE if none was provided
+
+# This ensures that CMake defaults to a Debug build if no build type is specified
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+endif()
 
 # Always use the newest C++ standard on green-field projects if possible.
-set(CMAKE_CXX_STANDARD 23)
-if (APPLE)
-    # On Mac, we need to wait for a new JUCE version that fixes the compilation issue
-    set(CMAKE_CXX_STANDARD 20)
-endif()
+set(CMAKE_CXX_STANDARD 17)
 
 # I like to download the dependencies to the same folder as the project.
 # If you want to install them system wide, set CPM_SOURCE_CACHE with the path to the dependencies
@@ -26,8 +29,8 @@ include(cmake/cpm.cmake)
 # This commands downloads AND configures JUCE. It sets up some variables, like JUCE_SOURCE_DIR.
 CPMAddPackage(
     NAME JUCE
-    GIT_TAG 8.0.0
-    VERSION 8.0.0
+    GIT_TAG 7.0.5
+    VERSION 7.0.5
     GITHUB_REPOSITORY juce-framework/JUCE
     SOURCE_DIR ${LIB_DIR}/juce
 )
@@ -36,16 +39,25 @@ CPMAddPackage(
 CPMAddPackage(
     NAME GOOGLETEST
     GITHUB_REPOSITORY google/googletest
-    GIT_TAG v1.14.0
-    VERSION 1.14.0
+    GIT_TAG v1.13.0
+    VERSION 1.13.0
     SOURCE_DIR ${LIB_DIR}/googletest
     OPTIONS
         "INSTALL_GTEST OFF"
         "gtest_force_shared_crt ON"
 )
 
+
 # This command allows running tests from the "build" folder (the one where CMake generates the project to).
 enable_testing()
+
+# Enables all warnings and treats warnings as errors.
+# This needs to be added AFTER all the third-party dependencies.
+if(MSVC)
+    add_compile_options(/Wall /WX)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 # Adds all the targets configured in the "plugin" folder.
 add_subdirectory(plugin)

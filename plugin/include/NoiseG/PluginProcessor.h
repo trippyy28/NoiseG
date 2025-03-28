@@ -1,15 +1,21 @@
 #pragma once
-
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include "Synth.h"
+#include "Voice.h"
+#include <memory>
+#include <iostream>
 
 namespace audio_plugin {
-class AudioPluginAudioProcessor : public juce::AudioProcessor {
+
+class NoiseGAudioProcessor : public juce::AudioProcessor {
 public:
-  AudioPluginAudioProcessor();
-  ~AudioPluginAudioProcessor() override;
+  NoiseGAudioProcessor();
+  ~NoiseGAudioProcessor() override;
 
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
   void releaseResources() override;
+  void reset() override;
 
   bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
@@ -35,7 +41,24 @@ public:
   void getStateInformation(juce::MemoryBlock& destData) override;
   void setStateInformation(const void* data, int sizeInBytes) override;
 
+  // מקורות אמת: הווליום מאוחסן כאן
+  void setVolume(float volume);
+  float getVolume() const { return volume; }
+
+  void setWaveform(int waveformType);
+  Synth synth;
+
 private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoiseGAudioProcessor)
+  void splitBufferByEvents(juce::AudioBuffer<float>& buffer,
+                           juce::MidiBuffer& midiMessages);
+  void handleMIDI(uint8_t data0, uint8_t data1, uint8_t data2);
+  void render(juce::AudioBuffer<float>& buffer,
+              int sampleCount,
+              int bufferOffset);
+
+  float volume;  // עכשיו מאתחלים את זה בקונסטרקטור
+  Voice voice;
 };
+
 }  // namespace audio_plugin
