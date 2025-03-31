@@ -33,7 +33,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
   volumeSlider.addListener(this);
 
-  volumeLabel.setText("Volume222", juce::dontSendNotification);
+  volumeLabel.setText("Volume", juce::dontSendNotification);
   volumeLabel.attachToComponent(&volumeSlider, true);
   volumeLabel.setFont(juce::Font(15.0f));
   volumeLabel.setColour(juce::Label::textColourId, juce::Colours::black);
@@ -43,7 +43,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   ninjaAnim = std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
       BinaryData::Ninja_png, BinaryData::Ninja_pngSize));
 
-  ninjaAnim->setTotalFrames(4);  // תעדכן לפי כמה frames יש לך
+  ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
   ninjaAnim->setBounds(200, 200, 48, 64);
 }

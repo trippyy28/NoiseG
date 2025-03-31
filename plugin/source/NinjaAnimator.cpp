@@ -1,7 +1,8 @@
 #include "NoiseG/NinjaAnimator.h"
 
 NinjaAnimator::NinjaAnimator(juce::Image spriteSheet) : sheet(spriteSheet) {
-  startTimerHz(10);  // 10 frames לשנייה
+  startTimerHz(60);
+  lastUpdateTime = juce::Time::getCurrentTime();  // 10 frames לשנייה
 }
 
 void NinjaAnimator::setTotalFrames(int frames) {
@@ -9,18 +10,32 @@ void NinjaAnimator::setTotalFrames(int frames) {
 }
 
 void NinjaAnimator::paint(juce::Graphics& g) {
-  int frameWidth = 48;
-  int frameHeight = 64;
+  int frameWidth = 16;
+  int frameHeight = 16;
 
-  // צייר את ה-frame הנוכחי מתוך הספרייט שיט
-  g.drawImage(sheet, 0, 0, frameWidth, frameHeight,                    // יעד
-              currentFrame * frameWidth, 0, frameWidth, frameHeight);  // מקור
+  int scaleFactor = 3;  // כמה להגדיל (כפול 4)
+
+  int targetWidth = frameWidth * scaleFactor;
+  int targetHeight = frameHeight * scaleFactor;
+  int x = (getWidth() - targetWidth) / 2;
+  int y = (getHeight() - targetHeight) / 2;
+
+  g.drawImage(sheet, x, y, targetWidth, targetHeight, currentFrame * frameWidth,
+              32, frameWidth, frameHeight);  // ← מקור
 }
-
 void NinjaAnimator::timerCallback() {
-  ++currentFrame;
-  if (currentFrame >= totalFrames)
-    currentFrame = 0;
+  auto now = juce::Time::getCurrentTime();
+  auto deltaTime =
+      (now.toMilliseconds() - lastUpdateTime.toMilliseconds()) / 1000.0;
 
-  repaint();
+  lastUpdateTime = now;
+  totalTime += deltaTime;
+
+  if (totalTime >= switchTime) {
+    totalTime -= switchTime;
+    ++currentFrame;
+    if (currentFrame >= totalFrames)
+      currentFrame = 0;
+    repaint();
+  }
 }

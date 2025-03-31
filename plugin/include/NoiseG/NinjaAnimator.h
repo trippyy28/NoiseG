@@ -12,5 +12,9 @@ public:
 private:
   juce::Image sheet;
   int currentFrame = 0;
-  int totalFrames = 4;
+  int totalFrames = 2;
+  double totalTime = 0.0;
+  double switchTime =
+      0.1;  // זמן במילים של שניות בין פריימים (0.1 שניות = 10FPS)
+  juce::Time lastUpdateTime;
 };
