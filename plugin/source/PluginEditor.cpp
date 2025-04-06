@@ -26,7 +26,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   waveformSelector.addItem("Noise", 4);
   waveformSelector.setSelectedId(currentWaveform + 1,
                                  juce::dontSendNotification);
-  // waveformSelector.addListener(this);
+  waveformSelector.addListener(this);
   // waveformSelector.setColour(juce::ComboBox::backgroundColourId,
   //                            juce::Colours::blueviolet);
   waveformSelector.setBounds(200, 30, 100, 100);
@@ -88,7 +88,7 @@ void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
 void NoiseGAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBox) {
   if (comboBox == &waveformSelector) {
     int selectedWaveform = comboBox->getSelectedId();
-    // DBG("Selected waveform: " << selectedWaveform);
+    DBG("Selected waveform: " << selectedWaveform);
     dynamic_cast<NoiseGAudioProcessor&>(processorRef)
         .setWaveform(selectedWaveform);
   }

@@ -16,6 +16,7 @@ void Synth::reset() {
 void Synth::render(float** outputBuffers, int sampleCount) {
   float* outputBufferLeft = outputBuffers[0];
   float* outputBufferRight = outputBuffers[1];
+
   for (int sample = 0; sample < sampleCount; ++sample) {
     float output = 0.0f;
     if (voice.note > 0) {
