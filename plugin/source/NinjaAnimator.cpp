@@ -13,8 +13,7 @@ void NinjaAnimator::paint(juce::Graphics& g) {
   int frameWidth = 16;
   int frameHeight = 16;
 
-  int scaleFactor = 3;  // כמה להגדיל (כפול 4)
-
+  int scaleFactor = 3;
   int targetWidth = frameWidth * scaleFactor;
   int targetHeight = frameHeight * scaleFactor;
   int x = (getWidth() - targetWidth) / 2;

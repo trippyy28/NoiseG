@@ -54,6 +54,11 @@ void Synth::setVolume(float vol) {
   DBG("Synth Volume: " << vol);
   DBG("Synth Amplitude: " << voice.osc.amplitude);
 }
+void Synth::setWaveform(WaveformType wf) {
+  waveform = wf;
+  voice.osc.waveform = wf;
+  DBG("Synth Waveform: " << wf);
+}
 
 void Synth::deallocateResources() {
   // אם יש שחרור משאבים יש להוסיף כאן

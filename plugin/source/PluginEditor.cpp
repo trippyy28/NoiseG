@@ -7,6 +7,11 @@ namespace audio_plugin {
 NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
     : AudioProcessorEditor(&p), processorRef(p) {
   // אתחול הסליידר עם הערך הנוכחי מה־Processor
+  juce::Typeface::Ptr customTypeface = juce::Typeface::createSystemTypefaceFor(
+      BinaryData::ffont_ttf, BinaryData::ffont_ttfSize);
+
+  juce::Font customFont(customTypeface);
+  customFont.setHeight(16.0f);
   auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
   int currentWaveform = static_cast<int>(proc.synth.getWaveform());
   volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
@@ -15,16 +20,18 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   addAndMakeVisible(&volumeSlider);
   addAndMakeVisible(&volumeLabel);
 
-  waveformSelector.addItem("Sineesss", 1);
+  waveformSelector.addItem("Sine", 1);
   waveformSelector.addItem("Square", 2);
   waveformSelector.addItem("Saw", 3);
-  waveformSelector.addItem("Noiseee", 4);
+  waveformSelector.addItem("Noise", 4);
   waveformSelector.setSelectedId(currentWaveform + 1,
                                  juce::dontSendNotification);
-  waveformSelector.addListener(this);
-  waveformSelector.setColour(juce::ComboBox::backgroundColourId,
-                             juce::Colours::white);
+  // waveformSelector.addListener(this);
+  // waveformSelector.setColour(juce::ComboBox::backgroundColourId,
+  //                            juce::Colours::blueviolet);
   waveformSelector.setBounds(200, 30, 100, 100);
+  waveformSelector.setTextWhenNothingSelected("Select Waveform");
+  waveformSelector.setLookAndFeel(&customLook);
   addAndMakeVisible(&waveformSelector);
 
   volumeSlider.setRange(0.0, 1.0, 0.01);
@@ -37,9 +44,10 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   volumeLabel.attachToComponent(&volumeSlider, true);
   volumeLabel.setFont(juce::Font(15.0f));
   volumeLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+  volumeLabel.setFont(customFont);
 
-  myImage = juce::ImageCache::getFromMemory(BinaryData::Untitled_png,
-                                            BinaryData::Untitled_pngSize);
+  myImage = juce::ImageCache::getFromMemory(BinaryData::Soldier_gif,
+                                            BinaryData::Soldier_gifSize);
   ninjaAnim = std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
       BinaryData::Ninja_png, BinaryData::Ninja_pngSize));
 
@@ -48,12 +56,14 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   ninjaAnim->setBounds(200, 200, 48, 64);
 }
 
-NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {}
+NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
+  waveformSelector.setLookAndFeel(nullptr);
+}
 
 void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
-  g.fillAll(juce::Colours::white);
+  g.fillAll(juce::Colours::blue);
   if (myImage.isValid()) {
-    g.drawImage(myImage, 10, 10, 50, 50, 0, 0, myImage.getWidth(),
+    g.drawImage(myImage, 10, 135, 200, 200, 0, 0, myImage.getWidth(),
                 myImage.getHeight());
   }
   // if (myImage2.isValid()) {

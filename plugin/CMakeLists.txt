@@ -15,6 +15,7 @@ juce_add_plugin(${PROJECT_NAME}
     FORMATS VST3 Standalone 
     PRODUCT_NAME "NoiseG"
     MODULES juce_audio_basics juce_graphics juce_audio_devices juce_audio_formats juce_audio_processors juce_audio_utils juce_core juce_data_structures juce_dsp juce_events juce_graphics juce_gui_basics juce_gui_extra juce_opengl juce_product_unlocking juce_video
+    ASSETS_TARGET Assets
 )
 
 target_sources(${PROJECT_NAME}
@@ -23,6 +24,7 @@ target_sources(${PROJECT_NAME}
         source/PluginProcessor.cpp
         source/Synth.cpp
         source/NinjaAnimator.cpp
+        source/CustomLookAndFeel.cpp
         ${INCLUDE_DIR}/PluginEditor.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/Synth.h
@@ -30,6 +32,7 @@ target_sources(${PROJECT_NAME}
         ${INCLUDE_DIR}/NoiseGenerator.h
         ${INCLUDE_DIR}/Utils.h
         ${INCLUDE_DIR}/NinjaAnimator.h
+        ${INCLUDE_DIR}/CustomLookAndFeel.h
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -67,6 +70,8 @@ juce_add_binary_data(Assets
     SOURCES
         ${ASSETS_DIR}/Untitled.png
         ${ASSETS_DIR}/Ninja.png
+        ${ASSETS_DIR}/ffont.ttf
+        ${ASSETS_DIR}/Soldier.gif
         # Add more assets here
 )
 

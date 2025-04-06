@@ -1,6 +1,7 @@
 #include "NoiseG/PluginProcessor.h"
 #include "NoiseG/NinjaAnimator.h"
 #include "BinaryData.h"
+#include "NoiseG/CustomLookAndFeel.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <juce_graphics/juce_graphics.h>
@@ -24,6 +25,7 @@ private:
   juce::ComboBox waveformSelector;
   juce::Slider volumeSlider;
   juce::Label volumeLabel;
+  CustomLookAndFeel customLook;
   juce::AudioProcessor& processorRef;
   juce::Image myImage;
   juce::Image myImage2;

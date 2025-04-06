@@ -1,0 +1,1 @@
+small JUCE project synth with pixel art

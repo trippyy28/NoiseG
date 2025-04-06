@@ -8,7 +8,7 @@ public:
   Synth();
   ~Synth();
   WaveformType waveform = SAW;
-  void setWaveform(WaveformType wf) { waveform = wf; }
+  void setWaveform(WaveformType wf) {};
   WaveformType getWaveform() const { return waveform; }
   void allocateResources(double sampleRate, int samplesPerBlock);
   void deallocateResources();
