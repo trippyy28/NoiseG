@@ -12,7 +12,7 @@ project(NoiseG VERSION 0.0.1 LANGUAGES CXX)
 
 # This ensures that CMake defaults to a Debug build if no build type is specified
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 endif()
 
 # Always use the newest C++ standard on green-field projects if possible.

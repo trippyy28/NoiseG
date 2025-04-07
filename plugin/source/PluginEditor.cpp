@@ -15,10 +15,14 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
   int currentWaveform = static_cast<int>(proc.synth.getWaveform());
   volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
-
+  myBtn.setSize(50, 50);
+  myBtn.setBounds(100, 30, 100, 40);
+  myBtn.setButtonText("Stop/Play");
+  myBtn.addListener(this);
   setSize(400, 300);
   addAndMakeVisible(&volumeSlider);
   addAndMakeVisible(&volumeLabel);
+  addAndMakeVisible(&myBtn);
 
   waveformSelector.addItem("Sine", 1);
   waveformSelector.addItem("Square", 2);
@@ -50,6 +54,10 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
                                             BinaryData::Soldier_gifSize);
   ninjaAnim = std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
       BinaryData::Ninja_png, BinaryData::Ninja_pngSize));
+  juce::Image myBtnImage = juce::ImageCache::getFromMemory(
+      BinaryData::play_png, BinaryData::play_pngSize);
+  myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f, {},
+                  myBtnImage, 1.0f, {});
 
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
@@ -94,4 +102,11 @@ void NoiseGAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBox) {
   }
 }
 
+void NoiseGAudioProcessorEditor::buttonClicked(juce::Button* button) {
+  if (button == &myBtn) {
+    static bool isPlaying = true;
+    isPlaying = !isPlaying;
+    ninjaAnim->setAnimationPlaying(isPlaying);
+  }
+}
 }  // namespace audio_plugin

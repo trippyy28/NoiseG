@@ -9,7 +9,8 @@ namespace audio_plugin {
 
 class NoiseGAudioProcessorEditor : public juce::AudioProcessorEditor,
                                    public juce::Slider::Listener,
-                                   public juce::ComboBox::Listener {
+                                   public juce::ComboBox::Listener,
+                                   public juce::Button::Listener {
 public:
   NoiseGAudioProcessorEditor(juce::AudioProcessor& p);
   ~NoiseGAudioProcessorEditor() override;
@@ -20,6 +21,7 @@ public:
   // Implement the sliderValueChanged method
   void sliderValueChanged(juce::Slider* slider) override;
   void comboBoxChanged(juce::ComboBox* comboBox) override;
+  void buttonClicked(juce::Button* button) override;
 
 private:
   juce::ComboBox waveformSelector;
@@ -29,6 +31,8 @@ private:
   juce::AudioProcessor& processorRef;
   juce::Image myImage;
   juce::Image myImage2;
+  juce::ImageButton myBtn;
+  juce::Image myBtnImage;
   std::unique_ptr<NinjaAnimator> ninjaAnim;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoiseGAudioProcessorEditor)

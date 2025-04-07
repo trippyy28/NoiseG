@@ -70,6 +70,8 @@ juce_add_binary_data(Assets
     SOURCES
         ${ASSETS_DIR}/Untitled.png
         ${ASSETS_DIR}/Ninja.png
+        ${ASSETS_DIR}/play.png
+        ${ASSETS_DIR}/stop.png
         ${ASSETS_DIR}/ffont.ttf
         ${ASSETS_DIR}/Soldier.gif
         # Add more assets here

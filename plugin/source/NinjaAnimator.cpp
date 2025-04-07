@@ -38,3 +38,10 @@ void NinjaAnimator::timerCallback() {
     repaint();
   }
 }
+
+void NinjaAnimator::setAnimationPlaying(bool shouldPlay) {
+  if (shouldPlay)
+    startTimerHz(60);
+  else
+    stopTimer();
+}
