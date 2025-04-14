@@ -22,10 +22,13 @@ public:
   void sliderValueChanged(juce::Slider* slider) override;
   void comboBoxChanged(juce::ComboBox* comboBox) override;
   void buttonClicked(juce::Button* button) override;
+  void setCutoff(float freq);
 
 private:
   juce::ComboBox waveformSelector;
   juce::Slider volumeSlider;
+  juce::Slider cutoffSlider;
+  juce::Label cutoffLabel;
   juce::Label volumeLabel;
   CustomLookAndFeel customLook;
   juce::AudioProcessor& processorRef;

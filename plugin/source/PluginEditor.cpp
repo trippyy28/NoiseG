@@ -58,6 +58,17 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
       BinaryData::play_png, BinaryData::play_pngSize);
   myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f, {},
                   myBtnImage, 1.0f, {});
+  cutoffSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+  cutoffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+  cutoffSlider.setRange(20.0, 20000.0, 1.0);
+  cutoffSlider.setSkewFactorFromMidPoint(1000.0);  // התנהגות לוג-אקולית
+
+  cutoffSlider.addListener(this);
+  addAndMakeVisible(cutoffSlider);
+
+  cutoffLabel.setText("Cutoff", juce::dontSendNotification);
+  cutoffLabel.attachToComponent(&cutoffSlider, false);
+  cutoffLabel.setJustificationType(juce::Justification::centredTop);
 
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
@@ -74,15 +85,12 @@ void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
     g.drawImage(myImage, 10, 135, 200, 200, 0, 0, myImage.getWidth(),
                 myImage.getHeight());
   }
-  // if (myImage2.isValid()) {
-  //   g.drawImage(myImage2, 10, 10, 50, 50, 0, 0, myImage2.getWidth(),
-  //               myImage2.getHeight());
-  // }
 }
 
 void NoiseGAudioProcessorEditor::resized() {
   volumeSlider.setBounds(60, 30, 100, 100);
   volumeLabel.setBounds(10, 20, 100, 40);
+  cutoffSlider.setBounds(60, 150, 100, 100);
 }
 
 void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
@@ -90,6 +98,10 @@ void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
     float volumeValue = static_cast<float>(volumeSlider.getValue());
     dynamic_cast<NoiseGAudioProcessor&>(processorRef).setVolume(volumeValue);
     // DBG("Volume: " << volumeValue);
+  }
+  if (slider == &cutoffSlider) {
+    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
+    proc.synth.setCutoff(cutoffSlider.getValue());
   }
 }
 
@@ -107,6 +119,8 @@ void NoiseGAudioProcessorEditor::buttonClicked(juce::Button* button) {
     static bool isPlaying = true;
     isPlaying = !isPlaying;
     ninjaAnim->setAnimationPlaying(isPlaying);
+    dynamic_cast<NoiseGAudioProcessor&>(processorRef)
+        .synth.setFilterEnabled(isPlaying);
   }
 }
 }  // namespace audio_plugin

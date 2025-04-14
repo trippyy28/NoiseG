@@ -13,26 +13,60 @@ void Synth::reset() {
   noiseGen.reset();
 }
 
-void Synth::render(float** outputBuffers, int sampleCount) {
-  float* outputBufferLeft = outputBuffers[0];
-  float* outputBufferRight = outputBuffers[1];
+// void Synth::render(float** outputBuffers, int sampleCount) {
+//   juce::dsp::AudioBlock<float> block(outputBuffers, 2, sampleCount);
+//   // float* outputBufferLeft = outputBuffers[0];
+//   // float* outputBufferRight = outputBuffers[1];
+//   juce::dsp::ProcessContextReplacing<float> context(block);
 
-  for (int sample = 0; sample < sampleCount; ++sample) {
-    float output = 0.0f;
-    if (voice.note > 0) {
-      output = voice.render();
+//   for (int sample = 0; sample < sampleCount; ++sample) {
+//     float output = 0.0f;
+//     if (voice.note > 0) {
+//       output = voice.render();
+//       output = filter.processSample(
+//           0, output);  // keeping this for single sample processing
+//     }
+//     outputBufferLeft[sample] =
+//         filter.processSample(0, outputBufferLeft[sample]);
+//     if (outputBufferRight != nullptr) {
+//       outputBufferRight[sample] =
+//           filter.processSample(1, outputBufferRight[sample]);
+//     }
+//   }
+//   protectYourEars(outputBufferLeft, sampleCount);
+//   protectYourEars(outputBufferRight, sampleCount);
+// }
+void Synth::render(float** outputBuffers, int sampleCount) {
+  juce::dsp::AudioBlock<float> block(outputBuffers, 2, sampleCount);
+  juce::dsp::ProcessContextReplacing<float> context(block);
+
+  if (voice.note > 0) {
+    for (int sample = 0; sample < sampleCount; ++sample) {
+      float output = voice.render();
+      outputBuffers[0][sample] = output;
+      outputBuffers[1][sample] = output;
     }
-    outputBufferLeft[sample] = output;
-    if (outputBufferRight != nullptr) {
-      outputBufferRight[sample] = output;
-    }
+  } else {
+    std::fill(outputBuffers[0], outputBuffers[0] + sampleCount, 0.0f);
+    std::fill(outputBuffers[1], outputBuffers[1] + sampleCount, 0.0f);
   }
-  protectYourEars(outputBufferLeft, sampleCount);
-  protectYourEars(outputBufferRight, sampleCount);
+
+  if (filterEnabled)
+    filter.process(context);
+
+  protectYourEars(outputBuffers[0], sampleCount);
+  protectYourEars(outputBuffers[1], sampleCount);
 }
 
 void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
   sampleRate = static_cast<float>(sampleRate_);
+  filterSpec.sampleRate = sampleRate;
+  filterSpec.maximumBlockSize = 512;
+  filterSpec.numChannels = 2;
+  filter.prepare(filterSpec);
+  filter.reset();
+  filter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+  filter.setCutoffFrequency(1000.0f);
 }
 
 void Synth::noteOn(int note, int velocity) {
@@ -59,6 +93,12 @@ void Synth::setWaveform(WaveformType wf) {
   waveform = wf;
   voice.osc.waveform = wf;
   DBG("Synth Waveform: " << wf);
+}
+void Synth::setCutoff(float freq) {
+  filter.setCutoffFrequency(freq);
+}
+void Synth::setFilterEnabled(bool shouldEnable) {
+  filterEnabled = shouldEnable;
 }
 
 void Synth::deallocateResources() {
