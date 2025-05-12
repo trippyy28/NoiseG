@@ -51,14 +51,22 @@ void Synth::render(float** outputBuffers, int sampleCount) {
     std::fill(outputBuffers[1], outputBuffers[1] + sampleCount, 0.0f);
   }
 
-  if (filterEnabled)
+  if (filterEnabled) {
+    float filterMod = voice.filterEnvelope.getNextSample();  // 0–1
+    float baseCutoff = 1000.0f;
+    float modulatedCutoff =
+        juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + filterMod));
+    filter.setCutoffFrequency(modulatedCutoff);
     filter.process(context);
+  }
 
   protectYourEars(outputBuffers[0], sampleCount);
   protectYourEars(outputBuffers[1], sampleCount);
 }
 
 void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
+  voice.ampEnvelope.setSampleRate(sampleRate);
+  voice.filterEnvelope.setSampleRate(sampleRate);
   sampleRate = static_cast<float>(sampleRate_);
   filterSpec.sampleRate = sampleRate;
   filterSpec.maximumBlockSize = 512;
@@ -76,10 +84,15 @@ void Synth::noteOn(int note, int velocity) {
   voice.osc.inc = freq / sampleRate;
   voice.osc.waveform = waveform;
   voice.osc.reset();
+
+  voice.ampEnvelope.noteOn();
+  voice.filterEnvelope.noteOn();
 }
 
 void Synth::noteOff(int note) {
   if (voice.note == note) {
+    voice.ampEnvelope.noteOff();
+    voice.filterEnvelope.noteOff();
     voice.note = 0;
   }
 }
@@ -96,6 +109,10 @@ void Synth::setWaveform(WaveformType wf) {
 }
 void Synth::setCutoff(float freq) {
   filter.setCutoffFrequency(freq);
+}
+
+void Synth::setFilterResonance(float q) {
+  filter.setResonance(q);
 }
 void Synth::setFilterEnabled(bool shouldEnable) {
   filterEnabled = shouldEnable;

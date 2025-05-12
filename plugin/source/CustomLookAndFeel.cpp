@@ -58,12 +58,44 @@ void CustomLookAndFeel::drawPopupMenuItem(juce::Graphics& g,
       juce::Typeface::createSystemTypefaceFor(BinaryData::ffont_ttf,
                                               BinaryData::ffont_ttfSize);
   juce::Font menuFont(pixelFont);
-  menuFont.setHeight(16.0f);
+  menuFont.setHeight(15.0f);
 
   g.setFont(menuFont);
 
-  auto textArea = area.reduced(6, 0);
+  auto textArea = area.reduced(2, 0);
   g.drawFittedText(text, textArea, juce::Justification::centredLeft, 1);
+}
+void CustomLookAndFeel::drawToggleButton(juce::Graphics& g,
+                                         juce::ToggleButton& button,
+                                         bool isMouseOverButton,
+                                         bool isButtonDown) {
+  auto bounds = button.getLocalBounds().toFloat().reduced(4.0f);
+
+  // צבעים בהתאמה למצב הכפתור
+  auto baseColour = button.getToggleState() ? juce::Colours::limegreen
+                                            : juce::Colours::darkslategrey;
+  auto borderColour =
+      isMouseOverButton ? juce::Colours::yellow : juce::Colours::black;
+
+  // רקע
+  g.setColour(baseColour);
+  g.fillRect(bounds);
+
+  // מסגרת
+  g.setColour(borderColour);
+  g.drawRect(bounds, 2.0f);
+
+  // טקסט
+  g.setColour(juce::Colours::white);
+  static juce::Typeface::Ptr pixelFont =
+      juce::Typeface::createSystemTypefaceFor(BinaryData::ffont_ttf,
+                                              BinaryData::ffont_ttfSize);
+  juce::Font font(pixelFont);
+  font.setHeight(15.0f);
+  g.setFont(font);
+
+  g.drawFittedText(button.getButtonText(), bounds.toNearestInt(),
+                   juce::Justification::centred, 1);
 }
 
 juce::Font CustomLookAndFeel::getComboBoxFont(juce::ComboBox& box) {

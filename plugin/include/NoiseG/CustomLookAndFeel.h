@@ -15,6 +15,10 @@ public:
                     int buttonW,
                     int buttonH,
                     juce::ComboBox& box) override;
+  void drawToggleButton(juce::Graphics& g,
+                        juce::ToggleButton& button,
+                        bool isMouseOverButton,
+                        bool isButtonDown);
 
   juce::Font getComboBoxFont(juce::ComboBox& box) override;
   void drawPopupMenuItem(juce::Graphics& g,

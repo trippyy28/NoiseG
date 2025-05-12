@@ -20,6 +20,7 @@ public:
   void setCutoff(float freq);
   void setFilterResonance(float q);
   void setFilterEnabled(bool shouldEnable);
+  Voice voice;
 
 private:
   NoiseGenerator noiseGen;
@@ -29,6 +30,6 @@ private:
   void noteOff(int note);
   float sampleRate;
   float volume = 0.5f;
-  Voice voice;
+  float baseCutoff = 300.f;
   bool filterEnabled = true;
 };

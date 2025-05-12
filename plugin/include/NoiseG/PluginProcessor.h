@@ -46,6 +46,8 @@ public:
   float getVolume() const { return volume; }
 
   void setWaveform(int waveformType);
+  void setAmpADSR(float a, float d, float s, float r);
+  void setFilterADSR(float a, float d, float s, float r);
   Synth synth;
 
 private:

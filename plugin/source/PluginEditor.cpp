@@ -16,10 +16,10 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   int currentWaveform = static_cast<int>(proc.synth.getWaveform());
   volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
   myBtn.setSize(50, 50);
-  myBtn.setBounds(100, 30, 100, 40);
-  myBtn.setButtonText("Stop/Play");
+  myBtn.setBounds(100, 370, 100, 40);
+  // myBtn.setButtonText("Stop/Play");
   myBtn.addListener(this);
-  setSize(400, 300);
+  setSize(800, 450);
   addAndMakeVisible(&volumeSlider);
   addAndMakeVisible(&volumeLabel);
   addAndMakeVisible(&myBtn);
@@ -33,7 +33,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   waveformSelector.addListener(this);
   // waveformSelector.setColour(juce::ComboBox::backgroundColourId,
   //                            juce::Colours::blueviolet);
-  waveformSelector.setBounds(200, 30, 100, 100);
+  waveformSelector.setBounds(500, 30, 100, 50);
   waveformSelector.setTextWhenNothingSelected("Select Waveform");
   waveformSelector.setLookAndFeel(&customLook);
   addAndMakeVisible(&waveformSelector);
@@ -53,7 +53,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   myImage = juce::ImageCache::getFromMemory(BinaryData::Soldier_gif,
                                             BinaryData::Soldier_gifSize);
   ninjaAnim = std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
-      BinaryData::Ninja_png, BinaryData::Ninja_pngSize));
+      BinaryData::Healer_png, BinaryData::Healer_pngSize));
   juce::Image myBtnImage = juce::ImageCache::getFromMemory(
       BinaryData::play_png, BinaryData::play_pngSize);
   myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f, {},
@@ -66,13 +66,57 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   cutoffSlider.addListener(this);
   addAndMakeVisible(cutoffSlider);
 
-  cutoffLabel.setText("Cutoff", juce::dontSendNotification);
-  cutoffLabel.attachToComponent(&cutoffSlider, false);
-  cutoffLabel.setJustificationType(juce::Justification::centredTop);
+  // cutoffLabel.setText("Filter", juce::dontSendNotification);
+  // cutoffLabel.attachToComponent(&cutoffSlider, false);
+  // cutoffLabel.setJustificationType(juce::Justification::centredTop);
+  // myToggleBtn.setButtonText("on/off");
+  myToggleBtn.addListener(this);
+  addAndMakeVisible(&myToggleBtn);
+  myToggleBtn.setLookAndFeel(&customLook);
+  // myToggleBtn.setColour(juce::TextButton::buttonColourId,
+  //                       juce::Colours::lightblue);
 
+  resonanceSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+  resonanceSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+  resonanceSlider.setRange(0.1, 10.0, 0.01);
+  resonanceSlider.setSkewFactorFromMidPoint(1.0);  // התנהגות לוג-אקולית
+  resonanceSlider.addListener(this);
+  addAndMakeVisible(resonanceSlider);
+  resonanceLabel.setText("Q", juce::dontSendNotification);
+  resonanceLabel.attachToComponent(&resonanceSlider, false);
+  resonanceLabel.setJustificationType(juce::Justification::centredTop);
+  resonanceLabel.setFont(customFont);
+  resonanceLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+  resonanceLabel.attachToComponent(&resonanceSlider, false);
+  auto setupADSRSlider = [](juce::Slider& slider, float min, float max) {
+    slider.setRange(min, max);
+    slider.setSliderStyle(juce::Slider::LinearVertical);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
+  };
+
+  // AMP ADSR
+  setupADSRSlider(attackSliderAmp, 0.001f, 5.0f);
+  setupADSRSlider(decaySliderAmp, 0.001f, 5.0f);
+  setupADSRSlider(sustainSliderAmp, 0.0f, 1.0f);
+  setupADSRSlider(releaseSliderAmp, 0.001f, 5.0f);
+
+  // FILTER ADSR
+  setupADSRSlider(attackSliderFilter, 0.001f, 5.0f);
+  setupADSRSlider(decaySliderFilter, 0.001f, 5.0f);
+  setupADSRSlider(sustainSliderFilter, 0.0f, 1.0f);
+  setupADSRSlider(releaseSliderFilter, 0.001f, 5.0f);
+  addAndMakeVisible(attackSliderAmp);
+  addAndMakeVisible(decaySliderAmp);
+  addAndMakeVisible(sustainSliderAmp);
+  addAndMakeVisible(releaseSliderAmp);
+
+  addAndMakeVisible(attackSliderFilter);
+  addAndMakeVisible(decaySliderFilter);
+  addAndMakeVisible(sustainSliderFilter);
+  addAndMakeVisible(releaseSliderFilter);
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
-  ninjaAnim->setBounds(200, 200, 48, 64);
+  ninjaAnim->setBounds(200, 370, 48, 64);
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
@@ -80,28 +124,65 @@ NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
 }
 
 void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
-  g.fillAll(juce::Colours::blue);
-  if (myImage.isValid()) {
-    g.drawImage(myImage, 10, 135, 200, 200, 0, 0, myImage.getWidth(),
-                myImage.getHeight());
-  }
+  g.fillAll(juce::Colour::fromRGB(226, 223, 213));
+  // if (myImage.isValid()) {
+  //   g.drawImage(myImage, 100, 370, 200, 200, 0, 0, myImage.getWidth(),
+  //               myImage.getHeight());
+  // }
 }
 
 void NoiseGAudioProcessorEditor::resized() {
+  int startX = 500;
+  int y = 100;
+  int width = 40;
+  int height = 100;
+  int gap = 10;
+
+  attackSliderAmp.setBounds(startX, y, width, height);
+  decaySliderAmp.setBounds(startX + (width + gap), y, width, height);
+  sustainSliderAmp.setBounds(startX + 2 * (width + gap), y, width, height);
+  releaseSliderAmp.setBounds(startX + 3 * (width + gap), y, width, height);
+
+  attackSliderFilter.setBounds(startX, y + 120, width, height);
+  decaySliderFilter.setBounds(startX + (width + gap), y + 120, width, height);
+  sustainSliderFilter.setBounds(startX + 2 * (width + gap), y + 120, width,
+                                height);
+  releaseSliderFilter.setBounds(startX + 3 * (width + gap), y + 120, width,
+                                height);
   volumeSlider.setBounds(60, 30, 100, 100);
   volumeLabel.setBounds(10, 20, 100, 40);
-  cutoffSlider.setBounds(60, 150, 100, 100);
+  cutoffSlider.setBounds(300, 150, 100, 100);
+  resonanceSlider.setBounds(250, 150, 60, 60);
+  myToggleBtn.setBounds(308, 115, 60, 40);
 }
 
 void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
   if (slider == &volumeSlider) {
     float volumeValue = static_cast<float>(volumeSlider.getValue());
     dynamic_cast<NoiseGAudioProcessor&>(processorRef).setVolume(volumeValue);
-    // DBG("Volume: " << volumeValue);
+    DBG("Volume: " << volumeValue);
   }
   if (slider == &cutoffSlider) {
     auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
     proc.synth.setCutoff(cutoffSlider.getValue());
+  }
+  if (slider == &resonanceSlider) {
+    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
+    proc.synth.setFilterResonance(resonanceSlider.getValue());
+  }
+  if (slider == &attackSliderAmp || slider == &decaySliderAmp ||
+      slider == &sustainSliderAmp || slider == &releaseSliderAmp) {
+    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
+    proc.setAmpADSR(attackSliderAmp.getValue(), decaySliderAmp.getValue(),
+                    sustainSliderAmp.getValue(), releaseSliderAmp.getValue());
+  }
+
+  if (slider == &attackSliderFilter || slider == &decaySliderFilter ||
+      slider == &sustainSliderFilter || slider == &releaseSliderFilter) {
+    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
+    proc.setFilterADSR(
+        attackSliderFilter.getValue(), decaySliderFilter.getValue(),
+        sustainSliderFilter.getValue(), releaseSliderFilter.getValue());
   }
 }
 
@@ -119,8 +200,12 @@ void NoiseGAudioProcessorEditor::buttonClicked(juce::Button* button) {
     static bool isPlaying = true;
     isPlaying = !isPlaying;
     ninjaAnim->setAnimationPlaying(isPlaying);
+  }
+  if (button == &myToggleBtn) {
+    bool isToggled = myToggleBtn.getToggleState();
     dynamic_cast<NoiseGAudioProcessor&>(processorRef)
-        .synth.setFilterEnabled(isPlaying);
+        .synth.setFilterEnabled(isToggled);
   }
 }
+// namespace audio_plugin
 }  // namespace audio_plugin

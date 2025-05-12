@@ -74,6 +74,7 @@ juce_add_binary_data(Assets
         ${ASSETS_DIR}/stop.png
         ${ASSETS_DIR}/ffont.ttf
         ${ASSETS_DIR}/Soldier.gif
+        ${ASSETS_DIR}/Healer.png
         # Add more assets here
 )
 

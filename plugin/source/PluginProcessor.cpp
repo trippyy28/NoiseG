@@ -159,6 +159,14 @@ void NoiseGAudioProcessor::setWaveform(int waveformType) {
   synth.setWaveform(wf);  // ← העברת ה־waveform לסינתיסייזר האמיתי
   DBG("Waveform set to: " << wf);
 }
+void NoiseGAudioProcessor::setAmpADSR(float a, float d, float s, float r) {
+  synth.voice.ampParams = {a, d, s, r};
+  synth.voice.ampEnvelope.setParameters(synth.voice.ampParams);
+}
+void NoiseGAudioProcessor::setFilterADSR(float a, float d, float s, float r) {
+  synth.voice.filterParams = {a, d, s, r};
+  synth.voice.filterEnvelope.setParameters(synth.voice.filterParams);
+}
 
 bool NoiseGAudioProcessor::hasEditor() const {
   return true;

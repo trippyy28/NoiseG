@@ -28,14 +28,23 @@ private:
   juce::ComboBox waveformSelector;
   juce::Slider volumeSlider;
   juce::Slider cutoffSlider;
+  juce::Slider resonanceSlider;
   juce::Label cutoffLabel;
   juce::Label volumeLabel;
+  juce::Label resonanceLabel;
   CustomLookAndFeel customLook;
   juce::AudioProcessor& processorRef;
   juce::Image myImage;
   juce::Image myImage2;
   juce::ImageButton myBtn;
   juce::Image myBtnImage;
+  juce::ToggleButton myToggleBtn;
+  // ADSR for amp
+  juce::Slider attackSliderAmp, decaySliderAmp, sustainSliderAmp,
+      releaseSliderAmp;
+  // ADSR for filter
+  juce::Slider attackSliderFilter, decaySliderFilter, sustainSliderFilter,
+      releaseSliderFilter;
   std::unique_ptr<NinjaAnimator> ninjaAnim;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoiseGAudioProcessorEditor)
