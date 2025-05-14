@@ -160,7 +160,9 @@ void NoiseGAudioProcessor::setWaveform(int waveformType) {
   DBG("Waveform set to: " << wf);
 }
 void NoiseGAudioProcessor::setAmpADSR(float a, float d, float s, float r) {
-  synth.voice.ampParams = {a, d, s, r};
+  DBG("setAmpADSR called - A: " << a << ", D: " << d << ", S: " << s
+                                << ", R: " << r);
+  synth.voice.setAmpADSR(a, d, s, r);
   synth.voice.ampEnvelope.setParameters(synth.voice.ampParams);
 }
 void NoiseGAudioProcessor::setFilterADSR(float a, float d, float s, float r) {

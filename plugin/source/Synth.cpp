@@ -40,17 +40,21 @@ void Synth::render(float** outputBuffers, int sampleCount) {
   juce::dsp::AudioBlock<float> block(outputBuffers, 2, sampleCount);
   juce::dsp::ProcessContextReplacing<float> context(block);
 
-  if (voice.note > 0) {
-    for (int sample = 0; sample < sampleCount; ++sample) {
-      float output = voice.render();
-      outputBuffers[0][sample] = output;
-      outputBuffers[1][sample] = output;
-    }
-  } else {
-    std::fill(outputBuffers[0], outputBuffers[0] + sampleCount, 0.0f);
-    std::fill(outputBuffers[1], outputBuffers[1] + sampleCount, 0.0f);
+  // if (voice.note > 0) {
+  //   for (int sample = 0; sample < sampleCount; ++sample) {
+  //     float output = voice.render();
+  //     outputBuffers[0][sample] = output;
+  //     outputBuffers[1][sample] = output;
+  //   }
+  // } else {
+  //   std::fill(outputBuffers[0], outputBuffers[0] + sampleCount, 0.0f);
+  //   std::fill(outputBuffers[1], outputBuffers[1] + sampleCount, 0.0f);
+  // }
+  for (int sample = 0; sample < sampleCount; ++sample) {
+    float output = voice.render();  // תמיד מחשב ADSR
+    outputBuffers[0][sample] = output;
+    outputBuffers[1][sample] = output;
   }
-
   if (filterEnabled) {
     float filterMod = voice.filterEnvelope.getNextSample();  // 0–1
     float baseCutoff = 1000.0f;
@@ -85,6 +89,8 @@ void Synth::noteOn(int note, int velocity) {
   voice.osc.waveform = waveform;
   voice.osc.reset();
 
+  voice.ampEnvelope.setParameters(voice.ampParams);
+  voice.filterEnvelope.setParameters(voice.filterParams);
   voice.ampEnvelope.noteOn();
   voice.filterEnvelope.noteOn();
 }

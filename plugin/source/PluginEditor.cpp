@@ -110,10 +110,14 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   addAndMakeVisible(sustainSliderAmp);
   addAndMakeVisible(releaseSliderAmp);
 
-  addAndMakeVisible(attackSliderFilter);
-  addAndMakeVisible(decaySliderFilter);
-  addAndMakeVisible(sustainSliderFilter);
-  addAndMakeVisible(releaseSliderFilter);
+  // addAndMakeVisible(attackSliderFilter);
+  // addAndMakeVisible(decaySliderFilter);
+  // addAndMakeVisible(sustainSliderFilter);
+  // addAndMakeVisible(releaseSliderFilter);
+  attackSliderAmp.addListener(this);
+  decaySliderAmp.addListener(this);
+  sustainSliderAmp.addListener(this);
+  releaseSliderAmp.addListener(this);
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
   ninjaAnim->setBounds(200, 370, 48, 64);
@@ -132,7 +136,7 @@ void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
 }
 
 void NoiseGAudioProcessorEditor::resized() {
-  int startX = 500;
+  int startX = 10;
   int y = 100;
   int width = 40;
   int height = 100;
