@@ -37,31 +37,24 @@ void Synth::reset() {
 //   protectYourEars(outputBufferRight, sampleCount);
 // }
 void Synth::render(float** outputBuffers, int sampleCount) {
-  juce::dsp::AudioBlock<float> block(outputBuffers, 2, sampleCount);
-  juce::dsp::ProcessContextReplacing<float> context(block);
-
-  // if (voice.note > 0) {
-  //   for (int sample = 0; sample < sampleCount; ++sample) {
-  //     float output = voice.render();
-  //     outputBuffers[0][sample] = output;
-  //     outputBuffers[1][sample] = output;
-  //   }
-  // } else {
-  //   std::fill(outputBuffers[0], outputBuffers[0] + sampleCount, 0.0f);
-  //   std::fill(outputBuffers[1], outputBuffers[1] + sampleCount, 0.0f);
-  // }
   for (int sample = 0; sample < sampleCount; ++sample) {
-    float output = voice.render();  // תמיד מחשב ADSR
-    outputBuffers[0][sample] = output;
-    outputBuffers[1][sample] = output;
-  }
-  if (filterEnabled) {
-    float filterMod = voice.filterEnvelope.getNextSample();  // 0–1
-    float baseCutoff = 1000.0f;
-    float modulatedCutoff =
-        juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + filterMod));
-    filter.setCutoffFrequency(modulatedCutoff);
-    filter.process(context);
+    float rawOutput = voice.render();
+    float left = rawOutput;
+    float right = rawOutput;
+
+    if (filterEnabled) {
+      // float filterEnvValue = voice.filterEnvelope.getNextSample();  // 0–1
+      // float mod = filterEnvValue * voice.filterModAmount;
+      // float modulatedCutoff =
+      //     juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + mod));
+      // filter.setCutoffFrequency(modulatedCutoff);
+
+      left = filter.processSample(0, rawOutput);
+      right = filter.processSample(1, rawOutput);
+    }
+
+    outputBuffers[0][sample] = left;
+    outputBuffers[1][sample] = right;
   }
 
   protectYourEars(outputBuffers[0], sampleCount);
@@ -105,13 +98,10 @@ void Synth::noteOff(int note) {
 
 void Synth::setVolume(float vol) {
   volume = vol;
-  DBG("Synth Volume: " << vol);
-  DBG("Synth Amplitude: " << voice.osc.amplitude);
 }
 void Synth::setWaveform(WaveformType wf) {
   waveform = wf;
   voice.osc.waveform = wf;
-  DBG("Synth Waveform: " << wf);
 }
 void Synth::setCutoff(float freq) {
   filter.setCutoffFrequency(freq);
@@ -122,6 +112,9 @@ void Synth::setFilterResonance(float q) {
 }
 void Synth::setFilterEnabled(bool shouldEnable) {
   filterEnabled = shouldEnable;
+}
+void Synth::setFilterModAmount(float amount) {
+  voice.setFilterModAmount(amount);
 }
 
 void Synth::deallocateResources() {

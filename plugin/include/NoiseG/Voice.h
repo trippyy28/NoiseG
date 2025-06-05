@@ -5,6 +5,7 @@
 struct Voice {
   int note;
   float amplitude;
+  float filterModAmount = 1.0f;
   Oscillator osc;
 
   juce::ADSR ampEnvelope;
@@ -20,18 +21,24 @@ struct Voice {
     ampEnvelope.reset();
     filterEnvelope.reset();
   }
+  void setFilterModAmount(float amount) { filterModAmount = amount; }
 
   void setAmpADSR(float attack, float decay, float sustain, float release) {
     ampParams.attack = attack;
     ampParams.decay = decay;
     ampParams.sustain = sustain;
     ampParams.release = release;
-    ampEnvelope.setParameters(
-        ampParams);  // Apply the parameters to the envelope
+    ampEnvelope.setParameters(ampParams);  // ← זה חובה
   }
 
+  void setFilterADSR(float attack, float decay, float sustain, float release) {
+    filterParams.attack = attack;
+    filterParams.decay = decay;
+    filterParams.sustain = sustain;
+    filterParams.release = release;
+    filterEnvelope.setParameters(filterParams);  // ← גם פה
+  }
   float render() {
-    ampEnvelope.setParameters(ampParams);
     float oscOut = osc.nextSample();
     float envAmp = ampEnvelope.getNextSample();
     return oscOut * envAmp;

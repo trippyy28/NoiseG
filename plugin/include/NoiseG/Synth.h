@@ -20,6 +20,7 @@ public:
   void setCutoff(float freq);
   void setFilterResonance(float q);
   void setFilterEnabled(bool shouldEnable);
+  void setFilterModAmount(float amount);
   Voice voice;
 
 private:

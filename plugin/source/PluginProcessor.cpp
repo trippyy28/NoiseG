@@ -182,6 +182,10 @@ void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   juce::XmlElement state("MyPluginState");
   state.setAttribute("volume", volume);
   state.setAttribute("waveform", static_cast<int>(synth.getWaveform()));
+  state.setAttribute("ampAttack", synth.voice.ampParams.attack);
+  state.setAttribute("ampDecay", synth.voice.ampParams.decay);
+  state.setAttribute("ampSustain", synth.voice.ampParams.sustain);
+  state.setAttribute("ampRelease", synth.voice.ampParams.release);
   copyXmlToBinary(state, destData);
 }
 
@@ -197,6 +201,12 @@ void NoiseGAudioProcessor::setStateInformation(const void* data,
     int waveformType = xmlState->getIntAttribute("waveform");
     setWaveform(waveformType);  // זה יפעיל את synth.setWaveform
   }
+
+  float ampA = xmlState->getDoubleAttribute("ampAttack", 0.01f);
+  float ampD = xmlState->getDoubleAttribute("ampDecay", 0.1f);
+  float ampS = xmlState->getDoubleAttribute("ampSustain", 1.0f);
+  float ampR = xmlState->getDoubleAttribute("ampRelease", 0.1f);
+  setAmpADSR(ampA, ampD, ampS, ampR);
 }
 
 void NoiseGAudioProcessor::reset() {

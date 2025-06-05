@@ -14,7 +14,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   customFont.setHeight(16.0f);
   auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
   int currentWaveform = static_cast<int>(proc.synth.getWaveform());
-  volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
+
   myBtn.setSize(50, 50);
   myBtn.setBounds(100, 370, 100, 40);
   // myBtn.setButtonText("Stop/Play");
@@ -101,10 +101,10 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   setupADSRSlider(releaseSliderAmp, 0.001f, 5.0f);
 
   // FILTER ADSR
-  setupADSRSlider(attackSliderFilter, 0.001f, 5.0f);
-  setupADSRSlider(decaySliderFilter, 0.001f, 5.0f);
-  setupADSRSlider(sustainSliderFilter, 0.0f, 1.0f);
-  setupADSRSlider(releaseSliderFilter, 0.001f, 5.0f);
+  // setupADSRSlider(attackSliderFilter, 0.001f, 5.0f);
+  // setupADSRSlider(decaySliderFilter, 0.001f, 5.0f);
+  // setupADSRSlider(sustainSliderFilter, 0.0f, 1.0f);
+  // setupADSRSlider(releaseSliderFilter, 0.001f, 5.0f);
   addAndMakeVisible(attackSliderAmp);
   addAndMakeVisible(decaySliderAmp);
   addAndMakeVisible(sustainSliderAmp);
@@ -118,9 +118,15 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   decaySliderAmp.addListener(this);
   sustainSliderAmp.addListener(this);
   releaseSliderAmp.addListener(this);
+
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
   ninjaAnim->setBounds(200, 370, 48, 64);
+  volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
+  attackSliderAmp.setValue(proc.getAmpAttack(), juce::dontSendNotification);
+  decaySliderAmp.setValue(proc.getAmpDecay(), juce::dontSendNotification);
+  sustainSliderAmp.setValue(proc.getAmpSustain(), juce::dontSendNotification);
+  releaseSliderAmp.setValue(proc.getAmpRelease(), juce::dontSendNotification);
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {

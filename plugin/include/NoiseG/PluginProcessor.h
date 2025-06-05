@@ -44,6 +44,10 @@ public:
   // מקורות אמת: הווליום מאוחסן כאן
   void setVolume(float volume);
   float getVolume() const { return volume; }
+  float getAmpAttack() const { return synth.voice.ampParams.attack; }
+  float getAmpDecay() const { return synth.voice.ampParams.decay; }
+  float getAmpSustain() const { return synth.voice.ampParams.sustain; }
+  float getAmpRelease() const { return synth.voice.ampParams.release; }
 
   void setWaveform(int waveformType);
   void setAmpADSR(float a, float d, float s, float r);
