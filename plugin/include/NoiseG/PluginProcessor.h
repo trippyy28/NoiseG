@@ -42,13 +42,15 @@ public:
   void setStateInformation(const void* data, int sizeInBytes) override;
 
   // מקורות אמת: הווליום מאוחסן כאן
-  void setVolume(float volume);
+
   float getVolume() const { return volume; }
+  float getFilterCutOff() const { return synth.filter.getCutoffFrequency(); }
   float getAmpAttack() const { return synth.voice.ampParams.attack; }
   float getAmpDecay() const { return synth.voice.ampParams.decay; }
   float getAmpSustain() const { return synth.voice.ampParams.sustain; }
   float getAmpRelease() const { return synth.voice.ampParams.release; }
 
+  void setVolume(float volume);
   void setWaveform(int waveformType);
   void setAmpADSR(float a, float d, float s, float r);
   void setFilterADSR(float a, float d, float s, float r);

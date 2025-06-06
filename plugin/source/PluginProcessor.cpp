@@ -186,6 +186,7 @@ void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   state.setAttribute("ampDecay", synth.voice.ampParams.decay);
   state.setAttribute("ampSustain", synth.voice.ampParams.sustain);
   state.setAttribute("ampRelease", synth.voice.ampParams.release);
+  state.setAttribute("filterCutOff", getFilterCutOff());
   copyXmlToBinary(state, destData);
 }
 
@@ -200,6 +201,10 @@ void NoiseGAudioProcessor::setStateInformation(const void* data,
   if (xmlState->hasAttribute("waveform")) {
     int waveformType = xmlState->getIntAttribute("waveform");
     setWaveform(waveformType);  // זה יפעיל את synth.setWaveform
+  }
+  if (xmlState->hasAttribute("filterCutOff")) {
+    float filterCutOff = xmlState->getDoubleAttribute("filterCutOff", 1000.0f);
+    synth.setCutoff(filterCutOff);
   }
 
   float ampA = xmlState->getDoubleAttribute("ampAttack", 0.01f);

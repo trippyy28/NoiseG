@@ -123,6 +123,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   addAndMakeVisible(ninjaAnim.get());
   ninjaAnim->setBounds(200, 370, 48, 64);
   volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
+  cutoffSlider.setValue(proc.getFilterCutOff(), juce::dontSendNotification);
   attackSliderAmp.setValue(proc.getAmpAttack(), juce::dontSendNotification);
   decaySliderAmp.setValue(proc.getAmpDecay(), juce::dontSendNotification);
   sustainSliderAmp.setValue(proc.getAmpSustain(), juce::dontSendNotification);
@@ -134,7 +135,7 @@ NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
 }
 
 void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
-  g.fillAll(juce::Colour::fromRGB(226, 223, 213));
+  g.fillAll(juce::Colour::fromRGB(102, 178, 255));
   // if (myImage.isValid()) {
   //   g.drawImage(myImage, 100, 370, 200, 200, 0, 0, myImage.getWidth(),
   //               myImage.getHeight());

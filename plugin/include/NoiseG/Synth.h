@@ -21,11 +21,12 @@ public:
   void setFilterResonance(float q);
   void setFilterEnabled(bool shouldEnable);
   void setFilterModAmount(float amount);
+  juce::dsp::StateVariableTPTFilter<float> filter;
   Voice voice;
 
 private:
   NoiseGenerator noiseGen;
-  juce::dsp::StateVariableTPTFilter<float> filter;
+
   juce::dsp::ProcessSpec filterSpec;
   void noteOn(int note, int velocity);
   void noteOff(int note);
