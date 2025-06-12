@@ -49,11 +49,16 @@ public:
   float getAmpDecay() const { return synth.voice.ampParams.decay; }
   float getAmpSustain() const { return synth.voice.ampParams.sustain; }
   float getAmpRelease() const { return synth.voice.ampParams.release; }
+  float getFilterAttack() const { return synth.voice.filterParams.attack; }
+  float getFilterDecay() const { return synth.voice.filterParams.decay; }
+  float getFilterSustain() const { return synth.voice.filterParams.sustain; }
+  float getFilterRelease() const { return synth.voice.filterParams.release; }
 
   void setVolume(float volume);
   void setWaveform(int waveformType);
   void setAmpADSR(float a, float d, float s, float r);
   void setFilterADSR(float a, float d, float s, float r);
+  void setModulationFilter(float amount);
   Synth synth;
 
 private:

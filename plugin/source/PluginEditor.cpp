@@ -91,7 +91,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   auto setupADSRSlider = [](juce::Slider& slider, float min, float max) {
     slider.setRange(min, max);
     slider.setSliderStyle(juce::Slider::LinearVertical);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 30);
   };
 
   // AMP ADSR
@@ -101,19 +101,19 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   setupADSRSlider(releaseSliderAmp, 0.001f, 5.0f);
 
   // FILTER ADSR
-  // setupADSRSlider(attackSliderFilter, 0.001f, 5.0f);
-  // setupADSRSlider(decaySliderFilter, 0.001f, 5.0f);
-  // setupADSRSlider(sustainSliderFilter, 0.0f, 1.0f);
-  // setupADSRSlider(releaseSliderFilter, 0.001f, 5.0f);
+  setupADSRSlider(attackSliderFilter, 0.001f, 5.0f);
+  setupADSRSlider(decaySliderFilter, 0.001f, 5.0f);
+  setupADSRSlider(sustainSliderFilter, 0.0f, 1.0f);
+  setupADSRSlider(releaseSliderFilter, 0.001f, 5.0f);
   addAndMakeVisible(attackSliderAmp);
   addAndMakeVisible(decaySliderAmp);
   addAndMakeVisible(sustainSliderAmp);
   addAndMakeVisible(releaseSliderAmp);
 
-  // addAndMakeVisible(attackSliderFilter);
-  // addAndMakeVisible(decaySliderFilter);
-  // addAndMakeVisible(sustainSliderFilter);
-  // addAndMakeVisible(releaseSliderFilter);
+  addAndMakeVisible(attackSliderFilter);
+  addAndMakeVisible(decaySliderFilter);
+  addAndMakeVisible(sustainSliderFilter);
+  addAndMakeVisible(releaseSliderFilter);
   attackSliderAmp.addListener(this);
   decaySliderAmp.addListener(this);
   sustainSliderAmp.addListener(this);
@@ -128,6 +128,20 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   decaySliderAmp.setValue(proc.getAmpDecay(), juce::dontSendNotification);
   sustainSliderAmp.setValue(proc.getAmpSustain(), juce::dontSendNotification);
   releaseSliderAmp.setValue(proc.getAmpRelease(), juce::dontSendNotification);
+  attackSliderFilter.setValue(proc.getFilterAttack(),
+                              juce::dontSendNotification);
+  decaySliderFilter.setValue(proc.getFilterDecay(), juce::dontSendNotification);
+  sustainSliderFilter.setValue(proc.getFilterSustain(),
+                               juce::dontSendNotification);
+  releaseSliderFilter.setValue(proc.getFilterRelease(),
+                               juce::dontSendNotification);
+  attackSliderFilter.addListener(this);
+  decaySliderFilter.addListener(this);
+  sustainSliderFilter.addListener(this);
+  releaseSliderFilter.addListener(this);
+  addAndMakeVisible(modulateFilterSlider);
+  addAndMakeVisible(attackLabel);
+  modulateFilterSlider.addListener(this);
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
@@ -164,6 +178,7 @@ void NoiseGAudioProcessorEditor::resized() {
   volumeLabel.setBounds(10, 20, 100, 40);
   cutoffSlider.setBounds(300, 150, 100, 100);
   resonanceSlider.setBounds(250, 150, 60, 60);
+  modulateFilterSlider.setBounds(400, 200, 140, 140);
   myToggleBtn.setBounds(308, 115, 60, 40);
 }
 
@@ -194,6 +209,10 @@ void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
     proc.setFilterADSR(
         attackSliderFilter.getValue(), decaySliderFilter.getValue(),
         sustainSliderFilter.getValue(), releaseSliderFilter.getValue());
+  }
+  if (slider == &modulateFilterSlider) {
+    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
+    proc.setModulationFilter(modulateFilterSlider.getValue());
   }
 }
 

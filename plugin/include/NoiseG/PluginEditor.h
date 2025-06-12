@@ -32,6 +32,7 @@ private:
   juce::Label cutoffLabel;
   juce::Label volumeLabel;
   juce::Label resonanceLabel;
+  juce::Label attackLabel;
   CustomLookAndFeel customLook;
   juce::AudioProcessor& processorRef;
   juce::Image myImage;
@@ -45,6 +46,7 @@ private:
   // ADSR for filter
   juce::Slider attackSliderFilter, decaySliderFilter, sustainSliderFilter,
       releaseSliderFilter;
+  juce ::Slider modulateFilterSlider;
   std::unique_ptr<NinjaAnimator> ninjaAnim;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoiseGAudioProcessorEditor)

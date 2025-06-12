@@ -43,11 +43,11 @@ void Synth::render(float** outputBuffers, int sampleCount) {
     float right = rawOutput;
 
     if (filterEnabled) {
-      // float filterEnvValue = voice.filterEnvelope.getNextSample();  // 0–1
-      // float mod = filterEnvValue * voice.filterModAmount;
-      // float modulatedCutoff =
-      //     juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + mod));
-      // filter.setCutoffFrequency(modulatedCutoff);
+      float filterEnvValue = voice.filterEnvelope.getNextSample();  // 0–1
+      float mod = filterEnvValue * voice.filterModAmount;
+      float modulatedCutoff =
+          juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + mod));
+      filter.setCutoffFrequency(modulatedCutoff);
 
       left = filter.processSample(0, rawOutput);
       right = filter.processSample(1, rawOutput);
@@ -86,6 +86,7 @@ void Synth::noteOn(int note, int velocity) {
   voice.filterEnvelope.setParameters(voice.filterParams);
   voice.ampEnvelope.noteOn();
   voice.filterEnvelope.noteOn();
+  DBG(voice.filterModAmount << "filter");
 }
 
 void Synth::noteOff(int note) {

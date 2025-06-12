@@ -166,8 +166,15 @@ void NoiseGAudioProcessor::setAmpADSR(float a, float d, float s, float r) {
   synth.voice.ampEnvelope.setParameters(synth.voice.ampParams);
 }
 void NoiseGAudioProcessor::setFilterADSR(float a, float d, float s, float r) {
-  synth.voice.filterParams = {a, d, s, r};
-  synth.voice.filterEnvelope.setParameters(synth.voice.filterParams);
+  DBG("setFilter called - A: " << a << ", D: " << d << ", S: " << s
+                               << ", R: " << r);
+  synth.voice.setFilterADSR(a, d, s, r);
+  // synth.voice.filterParams = {a, d, s, r};
+  // synth.voice.filterEnvelope.setParameters(synth.voice.filterParams);
+}
+
+void NoiseGAudioProcessor::setModulationFilter(float amount) {
+  synth.setFilterModAmount(amount);
 }
 
 bool NoiseGAudioProcessor::hasEditor() const {
@@ -186,6 +193,10 @@ void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   state.setAttribute("ampDecay", synth.voice.ampParams.decay);
   state.setAttribute("ampSustain", synth.voice.ampParams.sustain);
   state.setAttribute("ampRelease", synth.voice.ampParams.release);
+  state.setAttribute("filterAttack", synth.voice.filterParams.attack);
+  state.setAttribute("filterDecay", synth.voice.filterParams.decay);
+  state.setAttribute("filterSustain", synth.voice.filterParams.sustain);
+  state.setAttribute("filterRelease", synth.voice.filterParams.release);
   state.setAttribute("filterCutOff", getFilterCutOff());
   copyXmlToBinary(state, destData);
 }
@@ -212,6 +223,11 @@ void NoiseGAudioProcessor::setStateInformation(const void* data,
   float ampS = xmlState->getDoubleAttribute("ampSustain", 1.0f);
   float ampR = xmlState->getDoubleAttribute("ampRelease", 0.1f);
   setAmpADSR(ampA, ampD, ampS, ampR);
+  float filterA = xmlState->getDoubleAttribute("filterAttack", 0.01f);
+  float filterD = xmlState->getDoubleAttribute("filterDecay", 0.01f);
+  float filterS = xmlState->getDoubleAttribute("filterSustain", 1.01f);
+  float filterR = xmlState->getDoubleAttribute("filterRelease", 0.01f);
+  setFilterADSR(filterA, filterD, filterS, filterR);
 }
 
 void NoiseGAudioProcessor::reset() {
