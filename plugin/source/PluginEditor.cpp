@@ -78,7 +78,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
 
   resonanceSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
   resonanceSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-  resonanceSlider.setRange(0.1, 10.0, 0.01);
+  resonanceSlider.setRange(0.1, 4.0, 0.01);
   resonanceSlider.setSkewFactorFromMidPoint(1.0);  // התנהגות לוג-אקולית
   resonanceSlider.addListener(this);
   addAndMakeVisible(resonanceSlider);
@@ -141,6 +141,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   releaseSliderFilter.addListener(this);
   addAndMakeVisible(modulateFilterSlider);
   addAndMakeVisible(attackLabel);
+  modulateFilterSlider.setRange(0.0, 1.0, 0.01);
   modulateFilterSlider.addListener(this);
 }
 
@@ -191,6 +192,7 @@ void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
   if (slider == &cutoffSlider) {
     auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
     proc.synth.setCutoff(cutoffSlider.getValue());
+    DBG(cutoffSlider.getValue());
   }
   if (slider == &resonanceSlider) {
     auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);

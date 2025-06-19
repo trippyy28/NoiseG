@@ -46,7 +46,7 @@ void Synth::render(float** outputBuffers, int sampleCount) {
       float filterEnvValue = voice.filterEnvelope.getNextSample();  // 0–1
       float mod = filterEnvValue * voice.filterModAmount;
       float modulatedCutoff =
-          juce::jlimit(20.0f, 20000.0f, baseCutoff * (1.0f + mod));
+          juce::jlimit(20.0f, 20000.0f, baseCutoff + mod * 5000.0f);
       filter.setCutoffFrequency(modulatedCutoff);
 
       left = filter.processSample(0, rawOutput);
@@ -83,10 +83,12 @@ void Synth::noteOn(int note, int velocity) {
   voice.osc.reset();
 
   voice.ampEnvelope.setParameters(voice.ampParams);
-  voice.filterEnvelope.setParameters(voice.filterParams);
   voice.ampEnvelope.noteOn();
+  voice.filterEnvelope.setParameters(voice.filterParams);
   voice.filterEnvelope.noteOn();
-  DBG(voice.filterModAmount << "filter");
+
+  DBG(voice.filterModAmount << "filterMod");
+  DBG(filter.getCutoffFrequency() << "filterAmount");
 }
 
 void Synth::noteOff(int note) {
@@ -105,7 +107,7 @@ void Synth::setWaveform(WaveformType wf) {
   voice.osc.waveform = wf;
 }
 void Synth::setCutoff(float freq) {
-  filter.setCutoffFrequency(freq);
+  baseCutoff = freq;  // רק שומר את הערך, לא שולח אותו לפילטר
 }
 
 void Synth::setFilterResonance(float q) {
