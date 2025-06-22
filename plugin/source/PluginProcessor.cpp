@@ -4,7 +4,8 @@
 namespace audio_plugin {
 
 NoiseGAudioProcessor::NoiseGAudioProcessor()
-    : volume(0.5f),  // אתחול ברירת מחדל ל־volume
+    : volume(0.5f),
+      modAmount(1.0f),  // אתחול ברירת מחדל ל־volume
       AudioProcessor(
           BusesProperties()
 #if !JucePlugin_IsMidiEffect
@@ -174,6 +175,7 @@ void NoiseGAudioProcessor::setFilterADSR(float a, float d, float s, float r) {
 }
 
 void NoiseGAudioProcessor::setModulationFilter(float amount) {
+  modAmount = amount;
   synth.setFilterModAmount(amount);
 }
 
@@ -198,6 +200,9 @@ void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   state.setAttribute("filterSustain", synth.voice.filterParams.sustain);
   state.setAttribute("filterRelease", synth.voice.filterParams.release);
   state.setAttribute("filterCutOff", getFilterCutOff());
+  state.setAttribute("filterRes", getFilterRes());
+  state.setAttribute("modFilterAmount", modAmount);
+  state.setAttribute("filterEnabled", synth.getFilterEnbaled());
   copyXmlToBinary(state, destData);
 }
 
@@ -216,6 +221,17 @@ void NoiseGAudioProcessor::setStateInformation(const void* data,
   if (xmlState->hasAttribute("filterCutOff")) {
     float filterCutOff = xmlState->getDoubleAttribute("filterCutOff", 1000.0f);
     synth.setCutoff(filterCutOff);
+  }
+  if (xmlState->hasAttribute("modFilterAmount")) {
+    float modFilterAmount =
+        xmlState->getDoubleAttribute("modFilterAmount", modAmount);
+  }
+  if (xmlState->hasAttribute("filterRes")) {
+    float filterRes = xmlState->getDoubleAttribute("filterRes", 1.0f);
+  }
+  if (xmlState->hasAttribute("filterEnabled")) {
+    bool isFilterEnabled = xmlState->getBoolAttribute("filterEnabled", false);
+    synth.setFilterEnabled(isFilterEnabled);
   }
 
   float ampA = xmlState->getDoubleAttribute("ampAttack", 0.01f);

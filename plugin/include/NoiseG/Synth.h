@@ -21,6 +21,7 @@ public:
   void setFilterResonance(float q);
   void setFilterEnabled(bool shouldEnable);
   void setFilterModAmount(float amount);
+  bool getFilterEnbaled() const { return filterEnabled; }
   juce::dsp::StateVariableTPTFilter<float> filter;
   Voice voice;
 

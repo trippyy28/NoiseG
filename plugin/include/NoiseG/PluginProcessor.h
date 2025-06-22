@@ -45,6 +45,8 @@ public:
 
   float getVolume() const { return volume; }
   float getFilterCutOff() const { return synth.filter.getCutoffFrequency(); }
+  float getFilterRes() const { return synth.filter.getResonance(); }
+  float getModFilterAmount() const { return modAmount; }
   float getAmpAttack() const { return synth.voice.ampParams.attack; }
   float getAmpDecay() const { return synth.voice.ampParams.decay; }
   float getAmpSustain() const { return synth.voice.ampParams.sustain; }
@@ -70,7 +72,8 @@ private:
               int sampleCount,
               int bufferOffset);
 
-  float volume;  // עכשיו מאתחלים את זה בקונסטרקטור
+  float volume;
+  float modAmount;  // עכשיו מאתחלים את זה בקונסטרקטור
   Voice voice;
 };
 

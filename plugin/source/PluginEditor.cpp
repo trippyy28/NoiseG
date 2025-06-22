@@ -73,7 +73,10 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   myToggleBtn.addListener(this);
   addAndMakeVisible(&myToggleBtn);
   myToggleBtn.setLookAndFeel(&customLook);
-  // myToggleBtn.setColour(juce::TextButton::buttonColourId,
+  myToggleBtn.setToggleState(
+      proc.synth.getFilterEnbaled(),
+      juce::
+          dontSendNotification);  // myToggleBtn.setColour(juce::TextButton::buttonColourId,
   //                       juce::Colours::lightblue);
 
   resonanceSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -81,6 +84,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   resonanceSlider.setRange(0.1, 4.0, 0.01);
   resonanceSlider.setSkewFactorFromMidPoint(1.0);  // התנהגות לוג-אקולית
   resonanceSlider.addListener(this);
+  resonanceSlider.setValue(proc.getFilterRes(), juce::dontSendNotification);
   addAndMakeVisible(resonanceSlider);
   resonanceLabel.setText("Q", juce::dontSendNotification);
   resonanceLabel.attachToComponent(&resonanceSlider, false);
@@ -143,6 +147,8 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   addAndMakeVisible(attackLabel);
   modulateFilterSlider.setRange(0.0, 1.0, 0.01);
   modulateFilterSlider.addListener(this);
+  modulateFilterSlider.setValue(proc.getModFilterAmount(),
+                                juce ::dontSendNotification);
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
