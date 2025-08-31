@@ -76,9 +76,10 @@ void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
 
 void Synth::noteOn(int note, int velocity) {
   voice.note = note;
-  float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+  voice.osc.freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+  voice.osc.sampleRate = sampleRate;
   voice.osc.amplitude = (velocity / 127.0f) * volume;
-  voice.osc.inc = freq / sampleRate;
+  voice.osc.inc = voice.osc.freq / sampleRate;
   voice.osc.waveform = waveform;
   voice.osc.reset();
 
@@ -86,9 +87,6 @@ void Synth::noteOn(int note, int velocity) {
   voice.ampEnvelope.noteOn();
   voice.filterEnvelope.setParameters(voice.filterParams);
   voice.filterEnvelope.noteOn();
-
-  DBG(voice.filterModAmount << "filterMod");
-  DBG(filter.getCutoffFrequency() << "filterAmount");
 }
 
 void Synth::noteOff(int note) {
