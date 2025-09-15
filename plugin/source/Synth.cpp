@@ -9,7 +9,8 @@ Synth::Synth() {
 Synth::~Synth() {}
 
 void Synth::reset() {
-  voice.reset();
+  for (auto& v : voices)
+    v.reset();
   noiseGen.reset();
 }
 
@@ -37,85 +38,121 @@ void Synth::reset() {
 //   protectYourEars(outputBufferRight, sampleCount);
 // }
 void Synth::render(float** outputBuffers, int sampleCount) {
-  for (int sample = 0; sample < sampleCount; ++sample) {
-    float rawOutput = voice.render();
-    float left = rawOutput;
-    float right = rawOutput;
-
-    if (filterEnabled) {
-      float filterEnvValue = voice.filterEnvelope.getNextSample();  // 0–1
-      float mod = filterEnvValue * voice.filterModAmount;
-      float modulatedCutoff =
-          juce::jlimit(20.0f, 20000.0f, baseCutoff + mod * 5000.0f);
-      filter.setCutoffFrequency(modulatedCutoff);
-
-      left = filter.processSample(0, rawOutput);
-      right = filter.processSample(1, rawOutput);
+  for (int n = 0; n < sampleCount; ++n) {
+    float mix = 0.0f;
+    for (auto& v : voices) {
+      if (v.isActive())
+        mix += v.renderSample(baseCutoff, filterEnabled);
     }
-
-    outputBuffers[0][sample] = left;
-    outputBuffers[1][sample] = right;
+    outputBuffers[0][n] = mix;
+    outputBuffers[1][n] = mix;
   }
 
   protectYourEars(outputBuffers[0], sampleCount);
   protectYourEars(outputBuffers[1], sampleCount);
 }
+void Synth::allocateResources(double sampleRate_, int samplesPerBlock) {
+  sampleRate = static_cast<float>(sampleRate_);  // set first!
 
-void Synth::allocateResources(double sampleRate_, int /*samplesPerBlock*/) {
-  voice.ampEnvelope.setSampleRate(sampleRate);
-  voice.filterEnvelope.setSampleRate(sampleRate);
-  sampleRate = static_cast<float>(sampleRate_);
   filterSpec.sampleRate = sampleRate;
-  filterSpec.maximumBlockSize = 512;
-  filterSpec.numChannels = 2;
-  filter.prepare(filterSpec);
-  filter.reset();
-  filter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-  filter.setCutoffFrequency(1000.0f);
+  filterSpec.maximumBlockSize = (juce::uint32)samplesPerBlock;
+  filterSpec.numChannels = 1;  // per-voice filter is mono
+
+  for (auto& v : voices) {
+    v.osc.sampleRate = sampleRate;
+    v.ampEnvelope.setSampleRate(sampleRate);
+    v.filterEnvelope.setSampleRate(sampleRate);
+    v.filter.prepare(filterSpec);
+    v.filter.reset();
+    v.filter.setType(juce::dsp::StateVariableTPTFilterType::lowpass);
+    v.filter.setCutoffFrequency(baseCutoff);
+    v.reset();
+  }
+  noiseGen.reset();
 }
 
 void Synth::noteOn(int note, int velocity) {
-  voice.note = note;
-  voice.osc.freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
-  voice.osc.sampleRate = sampleRate;
-  voice.osc.amplitude = (velocity / 127.0f) * volume;
-  voice.osc.inc = voice.osc.freq / sampleRate;
-  voice.osc.waveform = waveform;
-  voice.osc.reset();
+  int vi = findFreeVoice();
+  auto& v = voices[vi];
 
-  voice.ampEnvelope.setParameters(voice.ampParams);
-  voice.ampEnvelope.noteOn();
-  voice.filterEnvelope.setParameters(voice.filterParams);
-  voice.filterEnvelope.noteOn();
+  v.note = note;
+  v.held = true;
+
+  v.osc.freq = 440.0f * std::exp2((float)(note - 69) / 12.0f);
+  v.osc.amplitude = (velocity / 127.0f) * volume;
+  v.osc.inc = v.osc.freq / sampleRate;
+  v.osc.waveform = waveform;
+  v.osc.reset();
+
+  v.ampEnvelope.setParameters(v.ampParams);
+  v.ampEnvelope.noteOn();
+
+  v.filterEnvelope.setParameters(v.filterParams);
+  v.filterEnvelope.noteOn();
+
+  v.filter.setCutoffFrequency(baseCutoff);
 }
 
 void Synth::noteOff(int note) {
-  if (voice.note == note) {
-    voice.ampEnvelope.noteOff();
-    voice.filterEnvelope.noteOff();
-    voice.note = 0;
-  }
+  int vi = findVoiceByNote(note);
+  if (vi < 0)
+    return;
+  auto& v = voices[vi];
+  v.held = false;
+  v.ampEnvelope.noteOff();
+  v.filterEnvelope.noteOff();
+  v.note = -1;  // mark as available; will fade during Release
+}
+int Synth::findFreeVoice() {
+  // 1) free (inactive)
+  for (int i = 0; i < MAX_VOICES; ++i)
+    if (!voices[i].isActive())
+      return i;
+  // 2) steal one not held (release stage)
+  for (int i = 0; i < MAX_VOICES; ++i)
+    if (!voices[i].held)
+      return i;
+  // 3) fallback
+  return 0;
+}
+
+int Synth::findVoiceByNote(int note) {
+  for (int i = 0; i < MAX_VOICES; ++i)
+    if (voices[i].note == note)
+      return i;
+  return -1;
 }
 
 void Synth::setVolume(float vol) {
   volume = vol;
 }
-void Synth::setWaveform(WaveformType wf) {
-  waveform = wf;
-  voice.osc.waveform = wf;
-}
 void Synth::setCutoff(float freq) {
   baseCutoff = freq;  // רק שומר את הערך, לא שולח אותו לפילטר
 }
 
-void Synth::setFilterResonance(float q) {
-  filter.setResonance(q);
+void Synth::setWaveform(WaveformType wf) {
+  waveform = wf;
+  for (auto& v : voices)
+    v.osc.waveform = wf;
 }
+
+void Synth::setFilterResonance(float q) {
+  for (auto& v : voices)
+    v.filter.setResonance(q);
+}
+
+void Synth::setFilterModAmount(float amount) {
+  for (auto& v : voices)
+    v.setFilterModAmount(amount);
+}
+
 void Synth::setFilterEnabled(bool shouldEnable) {
   filterEnabled = shouldEnable;
-}
-void Synth::setFilterModAmount(float amount) {
-  voice.setFilterModAmount(amount);
+  if (!shouldEnable) {
+    // Ensure no stale state when bypassing
+    for (auto& v : voices)
+      v.filter.reset();
+  }
 }
 
 void Synth::deallocateResources() {

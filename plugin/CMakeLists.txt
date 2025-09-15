@@ -25,7 +25,6 @@ target_sources(${PROJECT_NAME}
         source/Synth.cpp
         source/NinjaAnimator.cpp
         source/CustomLookAndFeel.cpp
-        source/MyVoice.cpp
         ${INCLUDE_DIR}/PluginEditor.h
         ${INCLUDE_DIR}/PluginProcessor.h
         ${INCLUDE_DIR}/Synth.h
@@ -33,7 +32,6 @@ target_sources(${PROJECT_NAME}
         ${INCLUDE_DIR}/NoiseGenerator.h
         ${INCLUDE_DIR}/Utils.h
         ${INCLUDE_DIR}/NinjaAnimator.h
-        ${INCLUDE_DIR}/MyVoice.h
         ${INCLUDE_DIR}/CustomLookAndFeel.h
 )
 
@@ -77,6 +75,7 @@ juce_add_binary_data(Assets
         ${ASSETS_DIR}/ffont.ttf
         ${ASSETS_DIR}/Soldier.gif
         ${ASSETS_DIR}/Healer.png
+        ${ASSETS_DIR}/CMAJOR.png
         # Add more assets here
 )
 

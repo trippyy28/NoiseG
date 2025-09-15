@@ -1,74 +1,42 @@
 #pragma once
 #include <cmath>
-const float TWO_PI = 6.2831853071795864f;
+#include <cstdlib>
 
-#pragma once
+const float TWO_PI = 6.2831853071795864f;
 
 enum WaveformType { SINE, SQUARE, SAW, NOISE };
 
+// Simple, normalized-phase oscillator.
+// - Set `inc = freq / sampleRate` before calling nextSample.
+// - `phase` stays in [0, 1).
 class Oscillator {
-private:
-  float sin0;
-  float sin1;
-  float dsin;
-
 public:
   float amplitude = 0.5f;
-  float inc = 0.0f;
-  float phase = 0.0f;
-  float freq;
-  float sampleRate;
-  float phaseBL;
+  float inc = 0.0f;     // phase increment (cycles per sample)
+  float phase = 0.0f;   // normalized phase [0, 1)
+  float freq = 0.0f;    // optional
+  float sampleRate = 0; // optional
   WaveformType waveform = SAW;
 
-  // Default waveform
-
-  void reset() {
-    phase = 0.0f;
-
-    sin0 = amplitude * std::sin(phase * TWO_PI);
-    sin1 = amplitude * std::sin((phase - inc) * TWO_PI);
-    dsin = 2.0f * std::cos(inc * TWO_PI);
-  }
-  float nextBandlimitedSample() {
-    phaseBL += inc;
-    if (phaseBL >= 1.0f) {
-      phaseBL -= 1.0f;
-    }
-    float output = 0.0f;
-    float nyquist = sampleRate / 2.0f;
-    float h = freq;
-    float i = 1.0f;
-    float m = 0.6366197724f;  // this is 2/pi while (h < nyquist) {
-    while (h < nyquist) {
-      output += m * std::sin(TWO_PI * phaseBL * i) / i;
-      h += freq;
-      i += 1.0f;
-      m = -m;
-    }
-    return output;
-  }
+  void reset() { phase = 0.0f; }
 
   float nextSample() {
+    // advance phase
     phase += inc;
-    if (phase >= 1.0f) {
+    if (phase >= 1.0f)
       phase -= 1.0f;
-    }
 
-    float sinx = dsin * sin0 - sin1;
-    sin1 = sin0;
-    sin0 = sinx;
     switch (waveform) {
       case SINE:
-        return sinx;
+        return amplitude * std::sin(TWO_PI * phase);
       case SQUARE:
-        return amplitude * (phase < 0.5f ? 1.0f : -1.0f);  // Square wave
+        return amplitude * (phase < 0.5f ? 1.0f : -1.0f);
       case SAW:
-        return amplitude * nextBandlimitedSample();  // Saw wave
+        // bipolar saw in [-1, 1]
+        return amplitude * (2.0f * phase - 1.0f);
       case NOISE:
-        return amplitude *
-               (2.0f * static_cast<float>(rand()) / RAND_MAX - 1.0f);  // Noise
+        return amplitude * (2.0f * static_cast<float>(std::rand()) / RAND_MAX - 1.0f);
     }
-    return 0.0f;  // Should never reach here
+    return 0.0f;
   }
 };

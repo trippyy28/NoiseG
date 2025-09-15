@@ -6,6 +6,15 @@
 #include <memory>
 #include <iostream>
 
+namespace ParameterID {
+#define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
+PARAMETER_ID(filterFreq)
+PARAMETER_ID(filterReso)
+PARAMETER_ID(outputLevel)
+PARAMETER_ID(polyMode)
+#undef PARAMETER_ID
+}  // namespace ParameterID
+
 namespace audio_plugin {
 
 class NoiseGAudioProcessor : public juce::AudioProcessor {
@@ -13,6 +22,8 @@ public:
   NoiseGAudioProcessor();
   ~NoiseGAudioProcessor() override;
 
+  juce::AudioProcessorValueTreeState apvts{*this, nullptr, "Parameters",
+                                           createParameterLayout()};
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
   void releaseResources() override;
   void reset() override;
@@ -40,21 +51,25 @@ public:
 
   void getStateInformation(juce::MemoryBlock& destData) override;
   void setStateInformation(const void* data, int sizeInBytes) override;
+  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
+      volumeAttach;
+  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
+      cutoffAttach;
 
   // מקורות אמת: הווליום מאוחסן כאן
 
   float getVolume() const { return volume; }
-  float getFilterCutOff() const { return synth.filter.getCutoffFrequency(); }
-  float getFilterRes() const { return synth.filter.getResonance(); }
+  float getFilterCutOff() const { return synth.voices[0].filter.getCutoffFrequency(); }
+  float getFilterRes() const { return synth.voices[0].filter.getResonance(); }
   float getModFilterAmount() const { return modAmount; }
-  float getAmpAttack() const { return synth.voice.ampParams.attack; }
-  float getAmpDecay() const { return synth.voice.ampParams.decay; }
-  float getAmpSustain() const { return synth.voice.ampParams.sustain; }
-  float getAmpRelease() const { return synth.voice.ampParams.release; }
-  float getFilterAttack() const { return synth.voice.filterParams.attack; }
-  float getFilterDecay() const { return synth.voice.filterParams.decay; }
-  float getFilterSustain() const { return synth.voice.filterParams.sustain; }
-  float getFilterRelease() const { return synth.voice.filterParams.release; }
+  float getAmpAttack() const { return synth.voices[0].ampParams.attack; }
+  float getAmpDecay() const { return synth.voices[0].ampParams.decay; }
+  float getAmpSustain() const { return synth.voices[0].ampParams.sustain; }
+  float getAmpRelease() const { return synth.voices[0].ampParams.release; }
+  float getFilterAttack() const { return synth.voices[0].filterParams.attack; }
+  float getFilterDecay() const { return synth.voices[0].filterParams.decay; }
+  float getFilterSustain() const { return synth.voices[0].filterParams.sustain; }
+  float getFilterRelease() const { return synth.voices[0].filterParams.release; }
 
   void setVolume(float volume);
   void setWaveform(int waveformType);
@@ -73,8 +88,38 @@ private:
               int bufferOffset);
 
   float volume;
-  float modAmount;  // עכשיו מאתחלים את זה בקונסטרקטור
+  float modAmount;
+  std::atomic<float>* volumeParam = nullptr;  // dB
+  std::atomic<float>* cutoffParam =
+      nullptr;  // Hz  // עכשיו מאתחלים את זה בקונסטרקטור
   Voice voice;
+  juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+  juce::AudioParameterFloat* oscMixParam;
+  juce::AudioParameterFloat* oscTuneParam;
+  juce::AudioParameterFloat* oscFineParam;
+  juce::AudioParameterChoice* glideModeParam;
+  juce::AudioParameterFloat* glideRateParam;
+  juce::AudioParameterFloat* glideBendParam;
+  juce::AudioParameterFloat* filterFreqParam;
+  juce::AudioParameterFloat* filterResoParam;
+  juce::AudioParameterFloat* filterEnvParam;
+  juce::AudioParameterFloat* filterLFOParam;
+  juce::AudioParameterFloat* filterVelocityParam;
+  juce::AudioParameterFloat* filterAttackParam;
+  juce::AudioParameterFloat* filterDecayParam;
+  juce::AudioParameterFloat* filterSustainParam;
+  juce::AudioParameterFloat* filterReleaseParam;
+  juce::AudioParameterFloat* envAttackParam;
+  juce::AudioParameterFloat* envDecayParam;
+  juce::AudioParameterFloat* envSustainParam;
+  juce::AudioParameterFloat* envReleaseParam;
+  juce::AudioParameterFloat* lfoRateParam;
+  juce::AudioParameterFloat* vibratoParam;
+  juce::AudioParameterFloat* noiseParam;
+  juce::AudioParameterFloat* octaveParam;
+  juce::AudioParameterFloat* tuningParam;
+  juce::AudioParameterFloat* outputLevelParam;
+  juce::AudioParameterChoice* polyModeParam;
 };
 
 }  // namespace audio_plugin

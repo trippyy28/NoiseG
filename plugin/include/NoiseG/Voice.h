@@ -1,10 +1,13 @@
+// Voice.h
 #include <juce_dsp/juce_dsp.h>
 #pragma once
 #include "Oscillator.h"
 
 struct Voice {
-  int note;
-  float amplitude;
+  int note = -1;      // -1 = free
+  bool held = false;  // key is down
+  float amplitude = 0.0f;
+
   float filterModAmount = 1.0f;
   Oscillator osc;
 
@@ -14,33 +17,58 @@ struct Voice {
   juce::ADSR::Parameters ampParams;
   juce::ADSR::Parameters filterParams;
 
+  // per-voice filter (mono)
+  juce::dsp::StateVariableTPTFilter<float> filter;
+
   void reset() {
-    note = 0;
+    note = -1;
+    held = false;
     amplitude = 0.0f;
     osc.reset();
     ampEnvelope.reset();
     filterEnvelope.reset();
+    filter.reset();
   }
+
+  bool isActive() const { return note >= 0 || ampEnvelope.isActive(); }
+
   void setFilterModAmount(float amount) { filterModAmount = amount; }
 
-  void setAmpADSR(float attack, float decay, float sustain, float release) {
-    ampParams.attack = attack;
-    ampParams.decay = decay;
-    ampParams.sustain = sustain;
-    ampParams.release = release;
-    ampEnvelope.setParameters(ampParams);  // ← זה חובה
+  void setAmpADSR(float a, float d, float s, float r) {
+    ampParams.attack = a;
+    ampParams.decay = d;
+    ampParams.sustain = s;
+    ampParams.release = r;
+    ampEnvelope.setParameters(ampParams);
   }
 
-  void setFilterADSR(float attack, float decay, float sustain, float release) {
-    filterParams.attack = attack;
-    filterParams.decay = decay;
-    filterParams.sustain = sustain;
-    filterParams.release = release;
-    filterEnvelope.setParameters(filterParams);  // ← גם פה
+  void setFilterADSR(float a, float d, float s, float r) {
+    filterParams.attack = a;
+    filterParams.decay = d;
+    filterParams.sustain = s;
+    filterParams.release = r;
+    filterEnvelope.setParameters(filterParams);
   }
-  float render() {
-    float oscOut = osc.nextSample();
-    float envAmp = ampEnvelope.getNextSample();
-    return oscOut * envAmp;
+
+  // one-sample render (per voice)
+  float renderSample(float baseCutoff, bool filterEnabled) {
+    float x = osc.nextSample();
+
+    // amp env
+    float amp = ampEnvelope.getNextSample();
+    x *= amp;
+
+    if (filterEnabled) {
+      // filter env → cutoff
+      float env = filterEnvelope.getNextSample();  // 0..1
+      float cutoff = juce::jlimit(20.0f, 20000.0f,
+                                  baseCutoff + env * filterModAmount * 5000.0f);
+      filter.setCutoffFrequency(cutoff);
+
+      // mono per-voice filter: process channel 0
+      x = filter.processSample(0, x);
+    }
+
+    return x;
   }
 };

@@ -38,11 +38,12 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   waveformSelector.setLookAndFeel(&customLook);
   addAndMakeVisible(&waveformSelector);
 
-  volumeSlider.setRange(0.0, 1.0, 0.01);
+  // volumeSlider.setRange(0.0, 1.0, 0.01);
   volumeSlider.setSliderStyle(juce::Slider::LinearHorizontal);
   volumeSlider.setColour(juce::Slider::thumbColourId, juce::Colours::red);
   volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
-  volumeSlider.addListener(this);
+  volumeSlider.setTextValueSuffix("dB");
+  // volumeSlider.addListener(this);
 
   volumeLabel.setText("Volume", juce::dontSendNotification);
   volumeLabel.attachToComponent(&volumeSlider, true);
@@ -58,13 +59,23 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
       BinaryData::play_png, BinaryData::play_pngSize);
   myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f, {},
                   myBtnImage, 1.0f, {});
+  cMajor = juce::ImageCache::getFromMemory(BinaryData::CMAJOR_png,
+                                           BinaryData::CMAJOR_pngSize);
   cutoffSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
   cutoffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+  cutoffSlider.setTextValueSuffix(" Hz");
   cutoffSlider.setRange(20.0, 20000.0, 1.0);
   cutoffSlider.setSkewFactorFromMidPoint(1000.0);  // התנהגות לוג-אקולית
 
-  cutoffSlider.addListener(this);
   addAndMakeVisible(cutoffSlider);
+  auto& apvts = proc.apvts;
+  volumeAttach =
+      std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+          apvts, ParameterID::outputLevel.getParamID(), volumeSlider);
+
+  cutoffAttach =
+      std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+          apvts, ParameterID::filterFreq.getParamID(), cutoffSlider);
 
   // cutoffLabel.setText("Filter", juce::dontSendNotification);
   // cutoffLabel.attachToComponent(&cutoffSlider, false);
@@ -126,8 +137,8 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
   addAndMakeVisible(ninjaAnim.get());
   ninjaAnim->setBounds(200, 370, 48, 64);
-  volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
-  cutoffSlider.setValue(proc.getFilterCutOff(), juce::dontSendNotification);
+  // volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
+  // Let the APVTS attachment drive the initial cutoff value
   attackSliderAmp.setValue(proc.getAmpAttack(), juce::dontSendNotification);
   decaySliderAmp.setValue(proc.getAmpDecay(), juce::dontSendNotification);
   sustainSliderAmp.setValue(proc.getAmpSustain(), juce::dontSendNotification);
@@ -152,15 +163,21 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
+  // Ensure attachments are destroyed before sliders/components during teardown
+  volumeAttach.reset();
+  cutoffAttach.reset();
+
+  // Clear custom LAFs in case of destruction ordering changes
+  myToggleBtn.setLookAndFeel(nullptr);
   waveformSelector.setLookAndFeel(nullptr);
 }
 
 void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
   g.fillAll(juce::Colour::fromRGB(102, 178, 255));
-  // if (myImage.isValid()) {
-  //   g.drawImage(myImage, 100, 370, 200, 200, 0, 0, myImage.getWidth(),
-  //               myImage.getHeight());
-  // }
+  if (cMajor.isValid()) {
+    g.drawImage(cMajor, 400, 100, 50, 50, 0, 0, cMajor.getWidth(),
+                cMajor.getHeight());
+  }
 }
 
 void NoiseGAudioProcessorEditor::resized() {
@@ -190,16 +207,12 @@ void NoiseGAudioProcessorEditor::resized() {
 }
 
 void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
-  if (slider == &volumeSlider) {
-    float volumeValue = static_cast<float>(volumeSlider.getValue());
-    dynamic_cast<NoiseGAudioProcessor&>(processorRef).setVolume(volumeValue);
-    DBG("Volume: " << volumeValue);
-  }
-  if (slider == &cutoffSlider) {
-    auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
-    proc.synth.setCutoff(cutoffSlider.getValue());
-    DBG(cutoffSlider.getValue());
-  }
+  // if (slider == &volumeSlider) {
+  //   float volumeValue = static_cast<float>(volumeSlider.getValue());
+  //   dynamic_cast<NoiseGAudioProcessor&>(processorRef).setVolume(volumeValue);
+  //   DBG("Volume: " << volumeValue);
+  // }
+  // cutoff is driven by APVTS attachment; no manual handling here
   if (slider == &resonanceSlider) {
     auto& proc = dynamic_cast<NoiseGAudioProcessor&>(processorRef);
     proc.synth.setFilterResonance(resonanceSlider.getValue());

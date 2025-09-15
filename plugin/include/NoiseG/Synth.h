@@ -22,8 +22,11 @@ public:
   void setFilterEnabled(bool shouldEnable);
   void setFilterModAmount(float amount);
   bool getFilterEnbaled() const { return filterEnabled; }
-  juce::dsp::StateVariableTPTFilter<float> filter;
-  Voice voice;
+  // juce::dsp::StateVariableTPTFilter<float> filter;
+  // Voice voice;
+  static constexpr int MAX_VOICES = 8;
+  int numVoices;
+  std::array<Voice, MAX_VOICES> voices{};
 
 private:
   NoiseGenerator noiseGen;
@@ -35,4 +38,6 @@ private:
   float volume = 0.5f;
   float baseCutoff = 300.f;
   bool filterEnabled = true;
+  int findFreeVoice();
+  int findVoiceByNote(int note);
 };

@@ -14,7 +14,12 @@ NoiseGAudioProcessor::NoiseGAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      ) {
+              ),
+      apvts(*this, nullptr, "PARAMS", createParameterLayout()) {
+  volumeParam =
+      apvts.getRawParameterValue(ParameterID::outputLevel.getParamID());
+  cutoffParam =
+      apvts.getRawParameterValue(ParameterID::filterFreq.getParamID());
 }
 
 NoiseGAudioProcessor::~NoiseGAudioProcessor() {}
@@ -110,6 +115,14 @@ void NoiseGAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
   for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     buffer.clear(i, 0, buffer.getNumSamples());
 
+  const float dbGain = volumeParam ? static_cast<float>(*volumeParam) : -6.f;
+  const float cutoffHz =
+      cutoffParam ? static_cast<float>(*cutoffParam) : 1000.f;
+
+  // העבר ל-Synth
+  const float linearGain = juce::Decibels::decibelsToGain(dbGain);
+  synth.setVolume(linearGain);
+  synth.setCutoff(cutoffHz);
   splitBufferByEvents(buffer, midiMessages);
 }
 
@@ -163,15 +176,14 @@ void NoiseGAudioProcessor::setWaveform(int waveformType) {
 void NoiseGAudioProcessor::setAmpADSR(float a, float d, float s, float r) {
   DBG("setAmpADSR called - A: " << a << ", D: " << d << ", S: " << s
                                 << ", R: " << r);
-  synth.voice.setAmpADSR(a, d, s, r);
-  synth.voice.ampEnvelope.setParameters(synth.voice.ampParams);
+  for (auto& v : synth.voices)
+    v.setAmpADSR(a, d, s, r);
 }
 void NoiseGAudioProcessor::setFilterADSR(float a, float d, float s, float r) {
   DBG("setFilter called - A: " << a << ", D: " << d << ", S: " << s
                                << ", R: " << r);
-  synth.voice.setFilterADSR(a, d, s, r);
-  // synth.voice.filterParams = {a, d, s, r};
-  // synth.voice.filterEnvelope.setParameters(synth.voice.filterParams);
+  for (auto& v : synth.voices)
+    v.setFilterADSR(a, d, s, r);
 }
 
 void NoiseGAudioProcessor::setModulationFilter(float amount) {
@@ -189,61 +201,95 @@ juce::AudioProcessorEditor* NoiseGAudioProcessor::createEditor() {
 
 void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   juce::XmlElement state("MyPluginState");
-  state.setAttribute("volume", volume);
-  state.setAttribute("waveform", static_cast<int>(synth.getWaveform()));
-  state.setAttribute("ampAttack", synth.voice.ampParams.attack);
-  state.setAttribute("ampDecay", synth.voice.ampParams.decay);
-  state.setAttribute("ampSustain", synth.voice.ampParams.sustain);
-  state.setAttribute("ampRelease", synth.voice.ampParams.release);
-  state.setAttribute("filterAttack", synth.voice.filterParams.attack);
-  state.setAttribute("filterDecay", synth.voice.filterParams.decay);
-  state.setAttribute("filterSustain", synth.voice.filterParams.sustain);
-  state.setAttribute("filterRelease", synth.voice.filterParams.release);
-  state.setAttribute("filterCutOff", getFilterCutOff());
-  state.setAttribute("filterRes", getFilterRes());
-  state.setAttribute("modFilterAmount", modAmount);
-  state.setAttribute("filterEnabled", synth.getFilterEnbaled());
-  copyXmlToBinary(state, destData);
+
+  auto apvtsState = apvts.copyState();
+  std::unique_ptr<juce::XmlElement> apvtsXml(apvtsState.createXml());
+
+  // 2) ה-XML המותאם שלך
+  juce::XmlElement root("MyPluginState");
+  root.setAttribute("waveform", static_cast<int>(synth.getWaveform()));
+  root.setAttribute("ampAttack", synth.voices[0].ampParams.attack);
+  root.setAttribute("ampDecay", synth.voices[0].ampParams.decay);
+  root.setAttribute("ampSustain", synth.voices[0].ampParams.sustain);
+  root.setAttribute("ampRelease", synth.voices[0].ampParams.release);
+  root.setAttribute("filterAttack", synth.voices[0].filterParams.attack);
+  root.setAttribute("filterDecay", synth.voices[0].filterParams.decay);
+  root.setAttribute("filterSustain", synth.voices[0].filterParams.sustain);
+  root.setAttribute("filterRelease", synth.voices[0].filterParams.release);
+  root.setAttribute("filterRes", getFilterRes());
+  root.setAttribute("modFilterAmount", modAmount);
+  root.setAttribute("filterEnabled", synth.getFilterEnbaled());
+
+  // 3) קנן את ה-APVTS כ-child כדי שהכול יישמר יחד
+  if (apvtsXml)
+    root.addChildElement(apvtsXml.release());
+
+  copyXmlToBinary(root, destData);
 }
 
 void NoiseGAudioProcessor::setStateInformation(const void* data,
                                                int sizeInBytes) {
-  std::unique_ptr<juce::XmlElement> xmlState(
-      getXmlFromBinary(data, sizeInBytes));
-  if (xmlState != nullptr && xmlState->hasTagName("MyPluginState")) {
-    volume = xmlState->getDoubleAttribute("volume", volume);
-    setVolume(volume);
-  }
-  if (xmlState->hasAttribute("waveform")) {
-    int waveformType = xmlState->getIntAttribute("waveform");
-    setWaveform(waveformType);  // זה יפעיל את synth.setWaveform
-  }
-  if (xmlState->hasAttribute("filterCutOff")) {
-    float filterCutOff = xmlState->getDoubleAttribute("filterCutOff", 1000.0f);
-    synth.setCutoff(filterCutOff);
-  }
-  if (xmlState->hasAttribute("modFilterAmount")) {
-    float modFilterAmount =
-        xmlState->getDoubleAttribute("modFilterAmount", modAmount);
-  }
-  if (xmlState->hasAttribute("filterRes")) {
-    float filterRes = xmlState->getDoubleAttribute("filterRes", 1.0f);
-  }
-  if (xmlState->hasAttribute("filterEnabled")) {
-    bool isFilterEnabled = xmlState->getBoolAttribute("filterEnabled", false);
-    synth.setFilterEnabled(isFilterEnabled);
+  std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+  if (!xml || !xml->hasTagName("MyPluginState"))
+    return;
+
+  // 1) שחזר APVTS אם נמצא child בשם ValueTreeState
+  if (auto* apvtsXml = xml->getChildByName("ValueTreeState")) {
+    juce::ValueTree vt = juce::ValueTree::fromXml(*apvtsXml);
+    if (vt.isValid())
+      apvts.replaceState(
+          vt);  // זה יטעין את ה-volume/cutoff וכל מה שמופיע ב-layout
   }
 
-  float ampA = xmlState->getDoubleAttribute("ampAttack", 0.01f);
-  float ampD = xmlState->getDoubleAttribute("ampDecay", 0.1f);
-  float ampS = xmlState->getDoubleAttribute("ampSustain", 1.0f);
-  float ampR = xmlState->getDoubleAttribute("ampRelease", 0.1f);
+  // 2) שחזר את השדות המותאמים שלך
+  if (xml->hasAttribute("waveform")) {
+    setWaveform(xml->getIntAttribute("waveform"));
+  }
+  // שאר ה-ADSR/Filter שלך:
+  float ampA = xml->getDoubleAttribute("ampAttack", 0.01f);
+  float ampD = xml->getDoubleAttribute("ampDecay", 0.1f);
+  float ampS = xml->getDoubleAttribute("ampSustain", 1.0f);
+  float ampR = xml->getDoubleAttribute("ampRelease", 0.1f);
   setAmpADSR(ampA, ampD, ampS, ampR);
-  float filterA = xmlState->getDoubleAttribute("filterAttack", 0.01f);
-  float filterD = xmlState->getDoubleAttribute("filterDecay", 0.01f);
-  float filterS = xmlState->getDoubleAttribute("filterSustain", 1.01f);
-  float filterR = xmlState->getDoubleAttribute("filterRelease", 0.01f);
+
+  float filterA = xml->getDoubleAttribute("filterAttack", 0.01f);
+  float filterD = xml->getDoubleAttribute("filterDecay", 0.01f);
+  float filterS = xml->getDoubleAttribute("filterSustain", 1.0f);
+  float filterR = xml->getDoubleAttribute("filterRelease", 0.01f);
   setFilterADSR(filterA, filterD, filterS, filterR);
+
+  if (xml->hasAttribute("filterRes"))
+    synth.setFilterResonance((float)xml->getDoubleAttribute("filterRes", 1.0f));
+
+  if (xml->hasAttribute("modFilterAmount"))
+    synth.setFilterModAmount(
+        (float)xml->getDoubleAttribute("modFilterAmount", modAmount));
+
+  if (xml->hasAttribute("filterEnabled"))
+    synth.setFilterEnabled(xml->getBoolAttribute("filterEnabled", false));
+
+  // אין צורך לטעון כאן volume/cutoff ידנית — APVTS כבר עשה זאת דרך
+  // replaceState.
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout
+NoiseGAudioProcessor::createParameterLayout() {
+  juce::AudioProcessorValueTreeState::ParameterLayout layout;
+  // you will add the parameters here soon
+
+  layout.add(std::make_unique<juce::AudioParameterChoice>(
+      ParameterID::polyMode, "Polyphony", juce::StringArray{"Mono", "Poly"},
+      1));
+  layout.add(std::make_unique<juce::AudioParameterFloat>(
+      ParameterID::outputLevel, "Output",
+      juce::NormalisableRange<float>(-60.f, 0.f), -6.f));
+
+  auto hz = juce::NormalisableRange<float>(20.f, 20000.f);
+  hz.setSkewForCentre(1000.f);
+
+  layout.add(std::make_unique<juce::AudioParameterFloat>(
+      ParameterID::filterFreq, "Cutoff", hz, 1000.0f));
+  return layout;
 }
 
 void NoiseGAudioProcessor::reset() {

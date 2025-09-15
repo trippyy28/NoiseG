@@ -14,7 +14,10 @@ class NoiseGAudioProcessorEditor : public juce::AudioProcessorEditor,
 public:
   NoiseGAudioProcessorEditor(juce::AudioProcessor& p);
   ~NoiseGAudioProcessorEditor() override;
-
+  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
+      volumeAttach;
+  std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>
+      cutoffAttach;
   void paint(juce::Graphics& g) override;
   void resized() override;
 
@@ -39,6 +42,7 @@ private:
   juce::Image myImage2;
   juce::ImageButton myBtn;
   juce::Image myBtnImage;
+  juce::Image cMajor;
   juce::ToggleButton myToggleBtn;
   // ADSR for amp
   juce::Slider attackSliderAmp, decaySliderAmp, sustainSliderAmp,
