@@ -1,5 +1,6 @@
 #include "NoiseG/PluginProcessor.h"
 #include "NoiseG/PluginEditor.h"
+#include <utility>
 
 namespace audio_plugin {
 
@@ -191,6 +192,47 @@ void NoiseGAudioProcessor::setModulationFilter(float amount) {
   synth.setFilterModAmount(amount);
 }
 
+void NoiseGAudioProcessor::setPolyphony(int voices) {
+  synth.setNumVoices(voices);
+}
+
+void NoiseGAudioProcessor::enableChordMode(bool enabled) {
+  synth.enableChordMode(enabled);
+}
+
+void NoiseGAudioProcessor::setChordBank(int bankIndex,
+                                        const Synth::ChordBank& bank) {
+  auto banks = synth.getChordBanks();
+  if (bankIndex >= static_cast<int>(banks.size()))
+    banks.resize(bankIndex + 1);
+  banks[bankIndex] = bank;
+  synth.setChordBanks(std::move(banks));
+}
+
+void NoiseGAudioProcessor::setChord(int bankIndex,
+                                    int chordIndex,
+                                    const Synth::Chord& chord) {
+  synth.setChord(bankIndex, chordIndex, chord);
+}
+
+void NoiseGAudioProcessor::setChordBanks(std::vector<Synth::ChordBank> banks) {
+  synth.setChordBanks(std::move(banks));
+}
+
+void NoiseGAudioProcessor::setActiveChordBank(int bankIndex) {
+  synth.setActiveChordBank(bankIndex);
+}
+
+void NoiseGAudioProcessor::previewChord(int bankIndex,
+                                        int chordIndex,
+                                        int velocity) {
+  synth.previewChord(bankIndex, chordIndex, velocity);
+}
+
+void NoiseGAudioProcessor::stopPreviewChord() {
+  synth.stopPreviewChord();
+}
+
 bool NoiseGAudioProcessor::hasEditor() const {
   return true;
 }
@@ -219,6 +261,7 @@ void NoiseGAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
   root.setAttribute("filterRes", getFilterRes());
   root.setAttribute("modFilterAmount", modAmount);
   root.setAttribute("filterEnabled", synth.getFilterEnbaled());
+  root.setAttribute("polyphony", synth.getNumVoices());
 
   // 3) קנן את ה-APVTS כ-child כדי שהכול יישמר יחד
   if (apvtsXml)
@@ -267,6 +310,9 @@ void NoiseGAudioProcessor::setStateInformation(const void* data,
 
   if (xml->hasAttribute("filterEnabled"))
     synth.setFilterEnabled(xml->getBoolAttribute("filterEnabled", false));
+
+  if (xml->hasAttribute("polyphony"))
+    setPolyphony(xml->getIntAttribute("polyphony", synth.getNumVoices()));
 
   // אין צורך לטעון כאן volume/cutoff ידנית — APVTS כבר עשה זאת דרך
   // replaceState.

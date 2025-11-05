@@ -6,6 +6,7 @@
 struct Voice {
   int note = -1;      // -1 = free
   bool held = false;  // key is down
+  bool preview = false;
   float amplitude = 0.0f;
 
   float filterModAmount = 1.0f;
@@ -19,15 +20,18 @@ struct Voice {
 
   // per-voice filter (mono)
   juce::dsp::StateVariableTPTFilter<float> filter;
+  juce::SmoothedValue<float> filterEnvSmoother{0.0f};
 
   void reset() {
     note = -1;
     held = false;
+    preview = false;
     amplitude = 0.0f;
     osc.reset();
     ampEnvelope.reset();
     filterEnvelope.reset();
     filter.reset();
+    filterEnvSmoother.setCurrentAndTargetValue(0.0f);
   }
 
   bool isActive() const { return note >= 0 || ampEnvelope.isActive(); }
@@ -56,16 +60,19 @@ struct Voice {
 
     // amp env
     float amp = ampEnvelope.getNextSample();
+    amplitude = amp;
     x *= amp;
 
     if (filterEnabled) {
       // filter env → cutoff
       float env = filterEnvelope.getNextSample();  // 0..1
-      float cutoff = juce::jlimit(20.0f, 20000.0f,
-                                  baseCutoff + env * filterModAmount * 5000.0f);
+      filterEnvSmoother.setTargetValue(env);
+      float smoothEnv = filterEnvSmoother.getNextValue();
+      float cutoff = juce::jlimit(
+          20.0f, 20000.0f, baseCutoff + smoothEnv * filterModAmount * 3000.0f);
       filter.setCutoffFrequency(cutoff);
 
-      // mono per-voice filter: process channel 0
+      // mono per-voice filter: process channel 0.
       x = filter.processSample(0, x);
     }
 

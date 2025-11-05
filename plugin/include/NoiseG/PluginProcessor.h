@@ -5,6 +5,7 @@
 #include "Voice.h"
 #include <memory>
 #include <iostream>
+#include <vector>
 
 namespace ParameterID {
 #define PARAMETER_ID(str) const juce::ParameterID str(#str, 1);
@@ -70,12 +71,26 @@ public:
   float getFilterDecay() const { return synth.voices[0].filterParams.decay; }
   float getFilterSustain() const { return synth.voices[0].filterParams.sustain; }
   float getFilterRelease() const { return synth.voices[0].filterParams.release; }
+  int getPolyphony() const { return synth.getNumVoices(); }
+  bool isChordModeEnabled() const { return synth.isChordModeEnabled(); }
+  const std::vector<Synth::ChordBank>& getChordBanks() const {
+    return synth.getChordBanks();
+  }
+  int getActiveChordBank() const { return synth.getActiveChordBank(); }
 
   void setVolume(float volume);
   void setWaveform(int waveformType);
   void setAmpADSR(float a, float d, float s, float r);
   void setFilterADSR(float a, float d, float s, float r);
   void setModulationFilter(float amount);
+  void setPolyphony(int voices);
+  void enableChordMode(bool enabled);
+  void setChordBank(int bankIndex, const Synth::ChordBank& bank);
+  void setChord(int bankIndex, int chordIndex, const Synth::Chord& chord);
+  void setChordBanks(std::vector<Synth::ChordBank> banks);
+  void setActiveChordBank(int bankIndex);
+  void previewChord(int bankIndex, int chordIndex, int velocity = 100);
+  void stopPreviewChord();
   Synth synth;
 
 private:

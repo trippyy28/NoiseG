@@ -1,9 +1,6 @@
 #include "NoiseG/NinjaAnimator.h"
 
-NinjaAnimator::NinjaAnimator(juce::Image spriteSheet) : sheet(spriteSheet) {
-  startTimerHz(60);
-  lastUpdateTime = juce::Time::getCurrentTime();  // 10 frames לשנייה
-}
+NinjaAnimator::NinjaAnimator(juce::Image spriteSheet) : sheet(spriteSheet) {}
 
 void NinjaAnimator::setTotalFrames(int frames) {
   totalFrames = frames;
@@ -40,8 +37,14 @@ void NinjaAnimator::timerCallback() {
 }
 
 void NinjaAnimator::setAnimationPlaying(bool shouldPlay) {
-  if (shouldPlay)
+  if (shouldPlay) {
+    lastUpdateTime = juce::Time::getCurrentTime();
+    totalTime = 0.0;
     startTimerHz(30);
-  else
+  } else {
     stopTimer();
+    currentFrame = 0;
+    totalTime = 0.0;
+    repaint();
+  }
 }
