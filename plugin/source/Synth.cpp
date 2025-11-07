@@ -25,6 +25,15 @@ Synth::Synth() {
   bank1.chords[5] = {61, 67, 70};  // G# Major
   bank1.chords[6] = {58, 72, 67};  // G# Major
   bank1.chords[7] = {56, 65, 73};  // G# Major
+  auto& bank2 = chordBanks[2];
+  bank2.chords[0] = {50, 54, 57};  // C# major
+  bank2.chords[1] = {51, 54, 58};  // D# minor
+  bank2.chords[2] = {53, 56, 60};  // F minor
+  bank2.chords[3] = {54, 59, 61};  // F# major
+  bank2.chords[4] = {62, 64, 66};  // G# Major
+  bank2.chords[5] = {61, 67, 70};  // G# Major
+  bank2.chords[6] = {58, 72, 67};  // G# Major
+  bank2.chords[7] = {56, 65, 73};  // G# Major
   enableChordMode(true);
 }
 
@@ -36,6 +45,10 @@ void Synth::reset() {
     v.reset();
   noiseGen.reset();
   mixGain.setCurrentAndTargetValue(1.0f);
+  activeChordNotes.clear();
+  chordSlotsByNote.clear();
+  activeChordSlots.clear();
+  previewVoiceIndices.clear();
 }
 
 // void Synth::render(float** outputBuffers, int sampleCount) {
@@ -123,14 +136,21 @@ void Synth::noteOn(int note, int velocity, bool bypassChordMapping) {
         auto& triggered = activeChordNotes[note];
         triggered.clear();
         triggered.reserve(chord->size());
+        int slotIndex = note - chordBaseNote;
         for (int chordNote : *chord) {
           int clampedNote = juce::jlimit(0, 127, chordNote);
           int voiceIdx = triggerVoice(clampedNote, velocity);
           if (voiceIdx >= 0)
             triggered.push_back(clampedNote);
         }
-        if (triggered.empty())
+        if (triggered.empty()) {
           activeChordNotes.erase(note);
+          activeChordSlots.erase(slotIndex);
+          chordSlotsByNote.erase(note);
+        } else {
+          activeChordSlots.insert(slotIndex);
+          chordSlotsByNote[note] = slotIndex;
+        }
         return;
       }
     }
@@ -172,8 +192,18 @@ void Synth::noteOff(int note, bool bypassChordMapping) {
       for (int chordNote : it->second)
         noteOff(chordNote, true);
       activeChordNotes.erase(it);
+      auto slotIt = chordSlotsByNote.find(note);
+      if (slotIt != chordSlotsByNote.end()) {
+        activeChordSlots.erase(slotIt->second);
+        chordSlotsByNote.erase(slotIt);
+      }
       return;
     }
+  }
+  auto slotIt = chordSlotsByNote.find(note);
+  if (slotIt != chordSlotsByNote.end()) {
+    activeChordSlots.erase(slotIt->second);
+    chordSlotsByNote.erase(slotIt);
   }
   releaseVoice(note);
 }
@@ -393,4 +423,12 @@ void Synth::releaseTrackedChordVoices() {
       releaseVoice(chordNote);
   }
   activeChordNotes.clear();
+  activeChordSlots.clear();
+  chordSlotsByNote.clear();
+}
+
+bool Synth::isChordSlotActive(int bankIndex, int chordIndex) const {
+  if (bankIndex != activeChordBank)
+    return false;
+  return activeChordSlots.find(chordIndex) != activeChordSlots.end();
 }

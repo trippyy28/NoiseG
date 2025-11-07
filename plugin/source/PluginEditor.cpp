@@ -16,6 +16,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   int currentWaveform = static_cast<int>(proc.synth.getWaveform());
   chordSlotColour = juce::Colour::fromRGB(102, 255, 255);
   chordSlotEmptyColour = chordSlotColour.darker(0.2f);
+  chordSlotPlayingColour = juce::Colour::fromRGB(255, 245, 150);
   chordSlotActiveColour = juce::Colour::fromRGB(255, 220, 130);
 
   myBtn.setSize(50, 50);
@@ -213,10 +214,12 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   polyphonyLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   addAndMakeVisible(polyphonyLabel);
   refreshChordDisplay();
+  startTimerHz(30);
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
   stopChordPreview();
+  stopTimer();
   // Ensure attachments are destroyed before sliders/components during teardown
   volumeAttach.reset();
   cutoffAttach.reset();
@@ -323,8 +326,11 @@ void NoiseGAudioProcessorEditor::refreshChordDisplay() {
     else
       chordLabels[(size_t)i].setText(formatChordLabel({}, i),
                                      juce::dontSendNotification);
-    auto background =
-        chord ? chordSlotColour : chordSlotEmptyColour;
+    bool hasChord = chord != nullptr;
+    bool isPlaying = hasChord && proc.isChordSlotActive(activeBank, i);
+    auto background = hasChord ? chordSlotColour : chordSlotEmptyColour;
+    if (isPlaying)
+      background = chordSlotPlayingColour;
     if (pressedChordIndex == i)
       background = chordSlotActiveColour;
     chordLabels[(size_t)i].setColour(juce::Label::backgroundColourId,
@@ -414,6 +420,10 @@ void NoiseGAudioProcessorEditor::mouseUp(const juce::MouseEvent& event) {
     refreshChordDisplay();
   }
   juce::AudioProcessorEditor::mouseUp(event);
+}
+
+void NoiseGAudioProcessorEditor::timerCallback() {
+  refreshChordDisplay();
 }
 
 void NoiseGAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {

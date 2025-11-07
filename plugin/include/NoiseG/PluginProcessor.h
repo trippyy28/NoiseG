@@ -77,6 +77,9 @@ public:
     return synth.getChordBanks();
   }
   int getActiveChordBank() const { return synth.getActiveChordBank(); }
+  bool isChordSlotActive(int bankIndex, int chordIndex) const {
+    return synth.isChordSlotActive(bankIndex, chordIndex);
+  }
 
   void setVolume(float volume);
   void setWaveform(int waveformType);

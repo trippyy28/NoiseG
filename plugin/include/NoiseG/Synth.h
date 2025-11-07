@@ -3,6 +3,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "Voice.h"
 #include "NoiseGenerator.h"
@@ -42,6 +43,7 @@ public:
   const Chord* getChord(int bankIndex, int chordIndex) const;
   void previewChord(int bankIndex, int chordIndex, int velocity = 100);
   void stopPreviewChord();
+  bool isChordSlotActive(int bankIndex, int chordIndex) const;
   // juce::dsp::StateVariableTPTFilter<float> filter;
   // Voice voice;
   static constexpr int MAX_VOICES = 32;
@@ -68,6 +70,8 @@ private:
   static constexpr int chordBaseNote = 36;  // C2
   std::vector<ChordBank> chordBanks;
   std::unordered_map<int, Chord> activeChordNotes;
+  std::unordered_map<int, int> chordSlotsByNote;
+  std::unordered_set<int> activeChordSlots;
   std::vector<int> previewVoiceIndices;
   int findFreeVoice();
   int findVoiceByNote(int note);

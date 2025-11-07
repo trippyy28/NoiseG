@@ -11,7 +11,8 @@ namespace audio_plugin {
 class NoiseGAudioProcessorEditor : public juce::AudioProcessorEditor,
                                    public juce::Slider::Listener,
                                    public juce::ComboBox::Listener,
-                                   public juce::Button::Listener {
+                                   public juce::Button::Listener,
+                                   public juce::Timer {
 public:
   NoiseGAudioProcessorEditor(juce::AudioProcessor& p);
   ~NoiseGAudioProcessorEditor() override;
@@ -37,6 +38,7 @@ private:
   void stopChordPreview();
   bool isChordSlotComponent(const juce::Component* component,
                             int& slotIndex) const;
+  void timerCallback() override;
   juce::ComboBox waveformSelector;
   juce::Slider volumeSlider;
   juce::Slider cutoffSlider;
@@ -64,6 +66,7 @@ private:
   std::array<juce::Label, Synth::chordsPerBank> chordLabels;
   juce::Colour chordSlotColour;
   juce::Colour chordSlotEmptyColour;
+  juce::Colour chordSlotPlayingColour;
   juce::Colour chordSlotActiveColour;
   int pressedChordIndex = -1;
   // ADSR for amp
