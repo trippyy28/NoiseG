@@ -163,7 +163,6 @@ void NoiseGAudioProcessor::render(juce::AudioBuffer<float>& buffer,
     outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
   synth.render(outputBuffers, sampleCount);
 }
-
 void NoiseGAudioProcessor::setVolume(float vol) {
   volume = vol;          // עדכון מקור האמת ב־Processor
   synth.setVolume(vol);  // העברת הערך ל־Synth

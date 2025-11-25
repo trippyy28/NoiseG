@@ -6,7 +6,7 @@
 Synth::Synth() {
   sampleRate = 44100.0f;
   mixGain.setCurrentAndTargetValue(1.0f);
-  chordBanks = {ChordBank{}, ChordBank{}};
+  chordBanks = {ChordBank{}, ChordBank{}, ChordBank{}};
   auto& bank0 = chordBanks[0];
   bank0.chords[0] = {48, 52, 55};  // C major
   bank0.chords[1] = {50, 53, 57};  // D minor
@@ -17,23 +17,23 @@ Synth::Synth() {
   bank0.chords[6] = {59, 62, 65};  // B diminished
   bank0.chords[7] = {60, 64, 67};  // C major (octave)
   auto& bank1 = chordBanks[1];
-  bank1.chords[0] = {49, 53, 56};  // C# major
-  bank1.chords[1] = {51, 54, 58};  // D# minor
-  bank1.chords[2] = {53, 56, 60};  // F minor
-  bank1.chords[3] = {54, 59, 61};  // F# major
-  bank1.chords[4] = {62, 64, 66};  // G# Major
-  bank1.chords[5] = {61, 67, 70};  // G# Major
-  bank1.chords[6] = {58, 72, 67};  // G# Major
-  bank1.chords[7] = {56, 65, 73};  // G# Major
+  bank1.chords[0] = {55, 59, 62};  // G major
+  bank1.chords[1] = {57, 60, 64};  // A minor
+  bank1.chords[2] = {59, 62, 66};  // B minor
+  bank1.chords[3] = {60, 64, 67};  // C major
+  bank1.chords[4] = {62, 66, 69};  // D major
+  bank1.chords[5] = {64, 67, 71};  // E minor
+  bank1.chords[6] = {66, 69, 72};  // F# diminished
+  bank1.chords[7] = {67, 71, 74};  // G major (octave)
   auto& bank2 = chordBanks[2];
-  bank2.chords[0] = {50, 54, 57};  // C# major
-  bank2.chords[1] = {51, 54, 58};  // D# minor
-  bank2.chords[2] = {53, 56, 60};  // F minor
-  bank2.chords[3] = {54, 59, 61};  // F# major
-  bank2.chords[4] = {62, 64, 66};  // G# Major
-  bank2.chords[5] = {61, 67, 70};  // G# Major
-  bank2.chords[6] = {58, 72, 67};  // G# Major
-  bank2.chords[7] = {56, 65, 73};  // G# Major
+  bank2.chords[0] = {48, 51, 55};  // C minor
+  bank2.chords[1] = {50, 53, 57};  // D diminished
+  bank2.chords[2] = {51, 55, 58};  // Eb major
+  bank2.chords[3] = {53, 57, 60};  // F minor
+  bank2.chords[4] = {55, 58, 62};  // G minor
+  bank2.chords[5] = {56, 60, 63};  // Ab major
+  bank2.chords[6] = {58, 62, 65};  // Bb major
+  bank2.chords[7] = {60, 63, 67};  // C minor (octave)
   enableChordMode(true);
 }
 

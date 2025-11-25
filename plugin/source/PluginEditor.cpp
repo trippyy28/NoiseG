@@ -19,14 +19,14 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   chordSlotPlayingColour = juce::Colour::fromRGB(255, 245, 150);
   chordSlotActiveColour = juce::Colour::fromRGB(255, 220, 130);
 
-  myBtn.setSize(50, 50);
-  myBtn.setBounds(100, 370, 100, 40);
-  // myBtn.setButtonText("Stop/Play");
-  myBtn.addListener(this);
-  setSize(800, 450);
+  // myBtn.setSize(50, 50);
+  // myBtn.setBounds(100, 370, 100, 40);
+  //  myBtn.setButtonText("Stop/Play");
+  // myBtn.addListener(this);
+  setSize(1200, 500);
   addAndMakeVisible(&volumeSlider);
   addAndMakeVisible(&volumeLabel);
-  addAndMakeVisible(&myBtn);
+  // addAndMakeVisible(&myBtn);
 
   waveformSelector.addItem("Sine", 1);
   waveformSelector.addItem("Square", 2);
@@ -55,18 +55,20 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   volumeLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   volumeLabel.setFont(customFont);
 
-  myImage = juce::ImageCache::getFromMemory(BinaryData::Soldier_gif,
-                                            BinaryData::Soldier_gifSize);
-  ninjaAnim = std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
-      BinaryData::Healer_png, BinaryData::Healer_pngSize));
-  juce::Image myBtnImage = juce::ImageCache::getFromMemory(
-      BinaryData::play_png, BinaryData::play_pngSize);
-  myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f, {},
-                  myBtnImage, 1.0f, {});
+  // myImage = juce::ImageCache::getFromMemory(BinaryData::Soldier_gif,
+  //                                           BinaryData::Soldier_gifSize);
+  // ninjaAnim =
+  // std::make_unique<NinjaAnimator>(juce::ImageCache::getFromMemory(
+  //     BinaryData::Healer_png, BinaryData::Healer_pngSize));
+  // juce::Image myBtnImage = juce::ImageCache::getFromMemory(
+  //     BinaryData::play_png, BinaryData::play_pngSize);
+  // myBtn.setImages(true, true, true, myBtnImage, 1.0f, {}, myBtnImage, 1.0f,
+  // {},
+  //                 myBtnImage, 1.0f, {});
   cMajor = juce::ImageCache::getFromMemory(BinaryData::CMAJOR_png,
                                            BinaryData::CMAJOR_pngSize);
   cutoffSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-  cutoffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+  cutoffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 150, 20);
   cutoffSlider.setTextValueSuffix(" Hz");
   cutoffSlider.setRange(20.0, 20000.0, 1.0);
   cutoffSlider.setSkewFactorFromMidPoint(1000.0);  // התנהגות לוג-אקולית
@@ -84,7 +86,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   // cutoffLabel.setText("Filter", juce::dontSendNotification);
   // cutoffLabel.attachToComponent(&cutoffSlider, false);
   // cutoffLabel.setJustificationType(juce::Justification::centredTop);
-  // myToggleBtn.setButtonText("on/off");
+  myToggleBtn.setButtonText("on/off");
   myToggleBtn.addListener(this);
   addAndMakeVisible(&myToggleBtn);
   myToggleBtn.setLookAndFeel(&customLook);
@@ -146,7 +148,7 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   auto setupADSRSlider = [](juce::Slider& slider, float min, float max) {
     slider.setRange(min, max);
     slider.setSliderStyle(juce::Slider::LinearVertical);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 80, 30);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 70, 40);
   };
 
   // AMP ADSR
@@ -174,11 +176,11 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   sustainSliderAmp.addListener(this);
   releaseSliderAmp.addListener(this);
 
-  ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
-  addAndMakeVisible(ninjaAnim.get());
-  ninjaAnim->setBounds(200, 370, 48, 64);
-  // volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
-  // Let the APVTS attachment drive the initial cutoff value
+  // ninjaAnim->setTotalFrames(3);  // תעדכן לפי כמה frames יש לך
+  // addAndMakeVisible(ninjaAnim.get());
+  // ninjaAnim->setBounds(200, 370, 48, 64);
+  //  volumeSlider.setValue(proc.getVolume(), juce::dontSendNotification);
+  //  Let the APVTS attachment drive the initial cutoff value
   attackSliderAmp.setValue(proc.getAmpAttack(), juce::dontSendNotification);
   decaySliderAmp.setValue(proc.getAmpDecay(), juce::dontSendNotification);
   sustainSliderAmp.setValue(proc.getAmpSustain(), juce::dontSendNotification);
@@ -213,8 +215,15 @@ NoiseGAudioProcessorEditor::NoiseGAudioProcessorEditor(juce::AudioProcessor& p)
   polyphonyLabel.setFont(customFont);
   polyphonyLabel.setColour(juce::Label::textColourId, juce::Colours::black);
   addAndMakeVisible(polyphonyLabel);
+  const std::array<juce::Slider*, 10> slidersWithThumbs = {
+      &attackSliderAmp,     &decaySliderAmp,      &sustainSliderAmp,
+      &releaseSliderAmp,    &attackSliderFilter,  &decaySliderFilter,
+      &sustainSliderFilter, &releaseSliderFilter, &polyphonySlider,
+      &modulateFilterSlider};
+  for (auto* slider : slidersWithThumbs)
+    slider->setLookAndFeel(&customLook);
   refreshChordDisplay();
-  startTimerHz(30);
+  startTimerHz(30);  // keep chord visual state in sync with synth activity
 }
 
 NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
@@ -228,10 +237,18 @@ NoiseGAudioProcessorEditor::~NoiseGAudioProcessorEditor() {
   myToggleBtn.setLookAndFeel(nullptr);
   chordModeToggle.setLookAndFeel(nullptr);
   waveformSelector.setLookAndFeel(nullptr);
+  for (auto* slider :
+       {&attackSliderAmp, &decaySliderAmp, &sustainSliderAmp, &releaseSliderAmp,
+        &attackSliderFilter, &decaySliderFilter, &sustainSliderFilter,
+        &releaseSliderFilter, &polyphonySlider, &modulateFilterSlider})
+    slider->setLookAndFeel(nullptr);
 }
 
 void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
   g.fillAll(juce::Colour::fromRGB(102, 178, 255));
+  juce::Rectangle<int> area(10, 10, 40, 40);  // [1]
+  g.setColour(juce::Colours::orange);
+  g.fillRect(area);
   // if (cMajor.isValid()) {
   //   g.drawImage(cMajor, 400, 100, 50, 50, 0, 0, cMajor.getWidth(),
   //               cMajor.getHeight());
@@ -239,11 +256,11 @@ void NoiseGAudioProcessorEditor::paint(juce::Graphics& g) {
 }
 
 void NoiseGAudioProcessorEditor::resized() {
-  int startX = 10;
+  int startX = 30;
   int y = 100;
-  int width = 40;
+  int width = 60;
   int height = 100;
-  int gap = 10;
+  int gap = 40;
 
   attackSliderAmp.setBounds(startX, y, width, height);
   decaySliderAmp.setBounds(startX + (width + gap), y, width, height);
@@ -258,27 +275,22 @@ void NoiseGAudioProcessorEditor::resized() {
                                 height);
   volumeSlider.setBounds(60, 30, 100, 100);
   volumeLabel.setBounds(10, 20, 100, 40);
-  cutoffSlider.setBounds(300, 150, 100, 100);
-  resonanceSlider.setBounds(250, 150, 60, 60);
-  modulateFilterSlider.setBounds(400, 200, 140, 140);
-  myToggleBtn.setBounds(308, 115, 60, 40);
-  chordModeToggle.setBounds(600, 140, 100, 30);
+  cutoffSlider.setBounds(520, 180, 100, 100);
+  resonanceSlider.setBounds(470, 166, 60, 60);
+  modulateFilterSlider.setBounds(520, 240, 140, 140);
+  myToggleBtn.setBounds(430, 240, 60, 40);
+  chordModeToggle.setBounds(800, 100, 100, 30);
   polyphonySlider.setBounds(500, 90, 160, 40);
-  chordGroup.setBounds(500, 190, 240, 120);
+  chordGroup.setBounds(800, 190, 240, 120);
   auto chordGroupBounds = chordGroup.getBounds();
   int buttonWidth = 32;
   int buttonHeight = 24;
-  int controlY = chordGroupBounds.getY() - buttonHeight - 4;
-  chordPrevButton.setBounds(chordGroupBounds.getX(),
-                            controlY,
-                            buttonWidth,
+  int controlY = chordGroupBounds.getY() - buttonHeight - 4 + 2;
+  chordPrevButton.setBounds(chordGroupBounds.getX(), controlY, buttonWidth,
                             buttonHeight);
-  chordNextButton.setBounds(chordGroupBounds.getRight() - buttonWidth,
-                            controlY,
-                            buttonWidth,
-                            buttonHeight);
-  chordBankLabel.setBounds(chordPrevButton.getRight(),
-                           controlY,
+  chordNextButton.setBounds(chordGroupBounds.getRight() - buttonWidth, controlY,
+                            buttonWidth, buttonHeight);
+  chordBankLabel.setBounds(chordPrevButton.getRight(), controlY,
                            chordGroupBounds.getWidth() - 2 * buttonWidth,
                            buttonHeight);
   auto groupInner = chordGroup.getBounds().reduced(12);
@@ -309,15 +321,13 @@ void NoiseGAudioProcessorEditor::refreshChordDisplay() {
     return;
   }
 
-  int bankCount =
-      juce::jmax(1, static_cast<int>(proc.getChordBanks().size()));
-  int activeBank =
-      juce::jlimit(0, bankCount - 1, proc.getActiveChordBank());
+  int bankCount = juce::jmax(1, static_cast<int>(proc.getChordBanks().size()));
+  int activeBank = juce::jlimit(0, bankCount - 1, proc.getActiveChordBank());
   chordPrevButton.setEnabled(bankCount > 1);
   chordNextButton.setEnabled(bankCount > 1);
-  chordBankLabel.setText("Bank " + juce::String(activeBank + 1) + " / " +
-                             juce::String(bankCount),
-                         juce::dontSendNotification);
+  chordBankLabel.setText(
+      "Bank " + juce::String(activeBank + 1) + " / " + juce::String(bankCount),
+      juce::dontSendNotification);
   for (int i = 0; i < Synth::chordsPerBank; ++i) {
     const auto* chord = proc.synth.getChord(activeBank, i);
     if (chord != nullptr)
@@ -383,10 +393,8 @@ void NoiseGAudioProcessorEditor::startChordPreview(int slotIndex) {
     return;
   }
 
-  int bankCount =
-      juce::jmax(1, static_cast<int>(proc.getChordBanks().size()));
-  int activeBank =
-      juce::jlimit(0, bankCount - 1, proc.getActiveChordBank());
+  int bankCount = juce::jmax(1, static_cast<int>(proc.getChordBanks().size()));
+  int activeBank = juce::jlimit(0, bankCount - 1, proc.getActiveChordBank());
   const auto* chord = proc.synth.getChord(activeBank, slotIndex);
   if (chord != nullptr) {
     pressedChordIndex = slotIndex;
@@ -471,11 +479,11 @@ void NoiseGAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBox) {
 }
 
 void NoiseGAudioProcessorEditor::buttonClicked(juce::Button* button) {
-  if (button == &myBtn) {
-    static bool isPlaying = true;
-    isPlaying = !isPlaying;
-    ninjaAnim->setAnimationPlaying(isPlaying);
-  }
+  // if (button == &myBtn) {
+  //   static bool isPlaying = true;
+  //   isPlaying = !isPlaying;
+  //   ninjaAnim->setAnimationPlaying(isPlaying);
+  // }
 
   if (button == &myToggleBtn) {
     bool isToggled = myToggleBtn.getToggleState();
